@@ -1,24 +1,24 @@
 import { GoogleGenAI } from "@google/genai";
 
-// Helper to safely get API key without crashing on missing process/env
+// Helper to safely get API key from defined process.env
 const getApiKey = () => {
   try {
-    return process.env.API_KEY || '';
+    return (process.env as any).API_KEY || '';
   } catch (e) {
     return '';
   }
 };
 
 const apiKey = getApiKey();
-const ai = new GoogleGenAI({ apiKey });
 
 export const generateDishDescription = async (dishName: string, categoryName: string): Promise<string> => {
   try {
     if (!apiKey) {
-      console.warn("API Key is missing. Returning mock response.");
-      return "وصف تجريبي: هذا الطبق شهي جداً ومحضر من مكونات طازجة. (يرجى إضافة مفتاح API للحصول على وصف ذكي).";
+      console.warn("API Key is missing for Gemini.");
+      return "وصف تلقائي: طبق مميز ومحضر بعناية من أجود المكونات الطازجة.";
     }
 
+    const ai = new GoogleGenAI({ apiKey });
     const model = 'gemini-3-flash-preview';
     const prompt = `
       اكتب وصفاً قصيراً وشهياً باللغة العربية لطبق طعام في قائمة مطعم.
@@ -29,23 +29,14 @@ export const generateDishDescription = async (dishName: string, categoryName: st
       الجواب يجب أن يكون نص الوصف فقط بدون أي مقدمات.
     `;
 
-    // Add a timeout to prevent "The request was aborted" or hanging requests if network is flaky
-    const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error("Request timeout")), 8000)
-    );
-    
-    const apiCall = ai.models.generateContent({
+    const response = await ai.models.generateContent({
       model: model,
-      contents: prompt,
+      contents: [{ parts: [{ text: prompt }] }],
     });
 
-    // Race against timeout
-    const response: any = await Promise.race([apiCall, timeoutPromise]);
-
-    return response.text?.trim() || "تعذر توليد الوصف حالياً.";
+    return response.text?.trim() || "طبق لذيذ ومميز من قائمتنا.";
   } catch (error) {
     console.error("Gemini API Error:", error);
-    // Return a fallback description instead of throwing
     return "وصف تلقائي: طبق مميز ومحضر بعناية من أجود المكونات.";
   }
 };
