@@ -27,24 +27,40 @@ export const getRestaurantConfig = async (identifier?: string): Promise<Restaura
   let config: RestaurantConfig = { ...DEFAULT_CONFIG };
   
   try {
+// 1. تحديد المعرف سواء كان ID أو اسم مختصر (Slug)
     let uid = identifier;
     if (!uid) {
         const { data: { session } } = await supabase.auth.getSession();
         uid = session?.user?.id;
     }
-    
+
     if (!uid) return config;
 
-    // البحث إما بالـ ID (UUID) أو بالـ Slug
-    let query = supabase.from('profiles').select('*');
+    // 2. تجهيز البحث في قاعدة البيانات
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(uid);
-    
+    let query = supabase.from('profiles').select('*');
+
     if (isUuid) {
         query = query.eq('id', uid);
     } else {
         query = query.eq('slug', uid);
     }
 
+    const { data: profileData, error: profileError } = await query.maybeSingle();
+
+    // 3. دمج البيانات (هنا نضمن بقاء التصميم ووصول الطلب)
+    if (profileData) {
+        const settings = profileData.settings || {};
+        config = {
+            ...config,
+            id: profileData.id, // هذا السطر هو مفتاح وصول الطلبات إليك!
+            name: profileData.restaurant_name ?? config.name,
+            description: profileData.description ?? config.description,
+            logo: profileData.logo_url ?? config.logo,
+            coverImage: profileData.cover_url ?? config.coverImage,
+            // ... (بقية الإعدادات تظل كما هي لضمان التصميم)
+        };
+    }
     const { data: profile } = await query.maybeSingle();
 
     if (profile) {
