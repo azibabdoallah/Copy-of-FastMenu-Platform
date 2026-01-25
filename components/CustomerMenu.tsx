@@ -87,11 +87,9 @@ const CustomerMenu: React.FC<CustomerMenuProps> = ({ config: initialConfig }) =>
             const fetchedConfig = await getRestaurantConfig(idToFetch || undefined);
             
             // استخراج المعرف الحقيقي من قاعدة البيانات ووضعه كمالك للمنيو للطلبات
-            const realDbId = (fetchedConfig as any).restaurant_db_id;
-            if (realDbId) {
-                setMenuOwnerId(realDbId);
-            }
-
+if (fetchedConfig.id) {
+    setMenuOwnerId(fetchedConfig.id);
+}
             setCurrentConfig(fetchedConfig);
             setMenuDishes(fetchedConfig.dishes);
         } catch (error) {
