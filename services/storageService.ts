@@ -418,3 +418,18 @@ export const uploadImage = async (file: File): Promise<string | null> => {
     return URL.createObjectURL(file);
   }
 };
+// دالة جديدة لجلب بيانات المطعم عن طريق الاسم المختصر (Slug)
+export const getRestaurantBySlug = async (slug: string): Promise<string | null> => {
+    try {
+        const { data, error } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('slug', slug) // هنا نبحث بالاسم المختصر
+            .maybeSingle();
+
+        if (error || !data) return null;
+        return data.id; // نعيد الـ ID الحقيقي للمطعم لكي يكمل الكود عمله
+    } catch (e) {
+        return null;
+    }
+};
