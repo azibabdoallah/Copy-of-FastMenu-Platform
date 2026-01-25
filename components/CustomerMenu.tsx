@@ -200,7 +200,9 @@ if (fetchedConfig.id) {
         alert("عذراً، لا يمكن إرسال الطلب في وضع المعاينة العامة.");
         return;
     }
-    
+    console.log("إرسال طلب للمطعم رقم:", menuOwnerId);
+
+setIsSubmitting(true);
     setIsSubmitting(true);
     try {
       await submitOrder({
