@@ -1,3 +1,4 @@
+
 import { RestaurantConfig } from './types';
 
 const defaultSchedule = { isOpen: true, start: "09:00", end: "23:00" };
@@ -5,12 +6,13 @@ const defaultSchedule = { isOpen: true, start: "09:00", end: "23:00" };
 export const DEFAULT_CONFIG: RestaurantConfig = {
   name: "FASTMENU",
   description: "خدمة المنيو الالكتروني للمطاعم. اطلب، ادفع، واستمتع بسرعة البرق.",
-  logo: "https://via.placeholder.com/200/000000/fbbf24?text=FASTMENU", // Updated placeholder
+  logo: "https://via.placeholder.com/200/000000/fbbf24?text=FASTMENU", 
   coverImage: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=1000&auto=format&fit=crop",
   currency: "ر.س",
-  primaryColor: "#fbbf24", // Yellow
+  primaryColor: "#fbbf24", 
   languages: ['ar'],
-  isOrderingEnabled: true, // Default to true
+  isOrderingEnabled: true, 
+  isDeliveryEnabled: true, // القيمة الافتراضية
   socials: {
     whatsapp: "966500000000",
     instagram: "fastmenu",
@@ -25,7 +27,7 @@ export const DEFAULT_CONFIG: RestaurantConfig = {
     tuesday: { ...defaultSchedule },
     wednesday: { ...defaultSchedule },
     thursday: { ...defaultSchedule },
-    friday: { isOpen: true, start: "13:00", end: "23:00" }, // Example: Friday usually starts later
+    friday: { isOpen: true, start: "13:00", end: "23:00" }, 
   },
   offers: [
     {
@@ -178,6 +180,8 @@ export const TRANSLATIONS = {
     restaurantSettings: "إعدادات المطعم",
     orderingPhone: "استقبال الطلبات عبر الهاتف",
     orderingPhoneDesc: "تفعيل أو إيقاف إمكانية إرسال الطلبات من صفحة المنيو",
+    deliveryService: "خدمة التوصيل",
+    deliveryServiceDesc: "تفعيل أو إيقاف خيار طلب التوصيل للزبائن",
     active: "مفعل",
     inactive: "متوقف",
     closed: "مغلق",
@@ -316,6 +320,8 @@ export const TRANSLATIONS = {
     restaurantSettings: "Paramètres du restaurant",
     orderingPhone: "Commandes via mobile",
     orderingPhoneDesc: "Activer ou désactiver la commande depuis la page du menu",
+    deliveryService: "Service de livraison",
+    deliveryServiceDesc: "Activer ou désactiver l'option de livraison pour les clients",
     active: "Activé",
     inactive: "Désactivé",
     closed: "Fermé",

@@ -1,11 +1,10 @@
-
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { RestaurantConfig, Dish, CartItem, Offer, Language, Category, WorkingHours } from '../types';
 import DishCard from './DishCard';
 import { submitOrder } from '../services/orderService';
 import { getRestaurantConfig } from '../services/storageService';
 import { supabase } from '../services/supabase';
-import { ShoppingBag, Plus, Minus, X, CheckCircle, LogOut, Loader2, ArrowRight, Ban, Facebook, Instagram, Flame, Star, Clock, Bike, Utensils } from 'lucide-react';
+import { ShoppingBag, Plus, Minus, X, CheckCircle, LogOut, Loader2, ArrowRight, Ban, Facebook, Instagram, Flame, Star, Clock, Bike, Utensils, LayoutDashboard } from 'lucide-react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { TRANSLATIONS } from '../constants';
 
@@ -86,13 +85,16 @@ const CustomerMenu: React.FC<CustomerMenuProps> = ({ config: initialConfig }) =>
             const idToFetch = identifier || targetUserId;
             const fetchedConfig = await getRestaurantConfig(idToFetch || undefined);
             
-            // القاعدة الصارمة: استخدام fetchedConfig.id كمعرف للمالك للطلبات
             if (fetchedConfig.id) {
                 setMenuOwnerId(fetchedConfig.id);
             }
 
             setCurrentConfig(fetchedConfig);
             setMenuDishes(fetchedConfig.dishes);
+            
+            if (fetchedConfig.isDeliveryEnabled === false) {
+                setOrderType('dine_in');
+            }
         } catch (error) {
             console.error("Failed to load menu data", error);
         } finally {
@@ -282,14 +284,15 @@ const CustomerMenu: React.FC<CustomerMenuProps> = ({ config: initialConfig }) =>
 
   return (
     <div className="min-h-screen bg-white pb-20 font-sans text-slate-900">
-      <div className="px-3 pt-3 flex justify-between items-center bg-white mb-2 z-30 relative">
-         <div className="w-8"></div>
-         <button onClick={handleExit} className="bg-gray-50 text-gray-700 p-2 rounded-full hover:bg-gray-100 transition-colors shadow-sm border border-gray-100">
-             {isOwner ? <LogOut size={16} /> : <ArrowRight size={16} className={language === 'ar' ? 'rotate-0' : 'rotate-180'} />}
-        </button>
-      </div>
+      {isOwner && (
+        <div className="px-3 pt-3 flex justify-end items-center bg-white z-30 relative">
+           <button onClick={handleExit} className="bg-gray-50 text-gray-700 p-2 rounded-full hover:bg-gray-100 transition-colors shadow-sm border border-gray-100" title="العودة للوحة التحكم">
+               <LayoutDashboard size={16} />
+           </button>
+        </div>
+      )}
 
-      <div className="px-3 mb-4">
+      <div className="px-3 mb-4 mt-3">
         <div className="w-full relative rounded-xl overflow-hidden aspect-[2.3/1] shadow-sm bg-gray-100">
             {activeOffers.length > 0 ? (
                 <>
@@ -335,9 +338,11 @@ const CustomerMenu: React.FC<CustomerMenuProps> = ({ config: initialConfig }) =>
                           <button onClick={() => setOrderType('dine_in')} className={`px-3 py-1 rounded-md text-[10px] font-bold flex items-center gap-1 transition-all ${orderType === 'dine_in' ? 'bg-white text-slate-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
                               <Utensils size={10} /> {t.dineIn}
                           </button>
-                          <button onClick={() => setOrderType('delivery')} className={`px-3 py-1 rounded-md text-[10px] font-bold flex items-center gap-1 transition-all ${orderType === 'delivery' ? 'bg-white text-black shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
-                              <Bike size={12} /> {t.delivery}
-                          </button>
+                          {currentConfig.isDeliveryEnabled !== false && (
+                              <button onClick={() => setOrderType('delivery')} className={`px-3 py-1 rounded-md text-[10px] font-bold flex items-center gap-1 transition-all ${orderType === 'delivery' ? 'bg-white text-black shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
+                                  <Bike size={12} /> {t.delivery}
+                              </button>
+                          )}
                       </div>
                   )}
               </div>
@@ -475,13 +480,13 @@ const CustomerMenu: React.FC<CustomerMenuProps> = ({ config: initialConfig }) =>
                       {orderType === 'dine_in' ? <Utensils size={18} className="text-gray-500"/> : <Bike size={18} className="text-black"/>}
                       <span className="font-bold text-sm">{orderType === 'dine_in' ? t.dineIn : t.delivery}</span>
                   </div>
-                  <input required placeholder={t.namePlaceholder} className="w-full border rounded-lg px-3 py-2 text-sm focus:border-black outline-none" value={customerName} onChange={e => setCustomerName(e.target.value)} />
+                  <input required placeholder={t.namePlaceholder} className="w-full border rounded-lg px-3 py-2 text-sm focus:border-black outline-none" value={customerName} onChange={setCustomerName ? e => setCustomerName(e.target.value) : undefined} />
                   {orderType === 'dine_in' ? (
-                      <input required placeholder={t.tablePlaceholder} className="w-full border rounded-lg px-3 py-2 text-sm focus:border-black outline-none" value={tableNumber} onChange={e => setTableNumber(e.target.value)} />
+                      <input required placeholder={t.tablePlaceholder} className="w-full border rounded-lg px-3 py-2 text-sm focus:border-black outline-none" value={tableNumber} onChange={setTableNumber ? e => setTableNumber(e.target.value) : undefined} />
                   ) : (
                       <>
-                        <input required type="tel" placeholder={t.phonePlaceholder} className="w-full border rounded-lg px-3 py-2 text-sm focus:border-black outline-none" value={customerPhone} onChange={e => setCustomerPhone(e.target.value)} />
-                        <textarea required placeholder={t.addressPlaceholder} className="w-full border rounded-lg px-3 py-2 text-sm focus:border-black outline-none h-20 resize-none" value={customerAddress} onChange={e => setCustomerAddress(e.target.value)} />
+                        <input required type="tel" placeholder={t.phonePlaceholder} className="w-full border rounded-lg px-3 py-2 text-sm focus:border-black outline-none" value={customerPhone} onChange={setCustomerPhone ? e => setCustomerPhone(e.target.value) : undefined} />
+                        <textarea required placeholder={t.addressPlaceholder} className="w-full border rounded-lg px-3 py-2 text-sm focus:border-black outline-none h-20 resize-none" value={customerAddress} onChange={setCustomerAddress ? e => setCustomerAddress(e.target.value) : undefined} />
                       </>
                   )}
                   <div className="flex gap-2 pt-2">
