@@ -11,15 +11,16 @@ const DINEIN_PREFIX = 'DINEIN_V1|||';
 // --- CLEANUP LOGIC ---
 const CLEANUP_HOURS = 8;
 
-const cleanupOldOrders = async () => {
+const cleanupOldOrders = async (restaurantId: string) => {
   try {
     // Calculate cutoff time (current time - 8 hours)
     const cutoffTime = new Date(Date.now() - CLEANUP_HOURS * 60 * 60 * 1000).toISOString();
 
-    // 1. Delete from Supabase
+    // 1. Delete from Supabase for this specific restaurant
     const { error } = await supabase
       .from('orders')
       .delete()
+      .eq('restaurant_id', restaurantId)
       .lt('created_at', cutoffTime);
     
     if (error) console.error("Supabase cleanup error:", error);
@@ -71,9 +72,6 @@ export const submitOrder = async (order: Omit<Order, 'id' | 'created_at' | 'stat
         status: 'pending'
     };
 
-    // Note: We do NOT send type, phone, address as separate columns to Supabase
-    // to prevent errors if those columns don't exist in the user's table.
-
     const { data, error } = await supabase
       .from('orders')
       .insert([submissionData])
@@ -101,14 +99,15 @@ export const submitOrder = async (order: Omit<Order, 'id' | 'created_at' | 'stat
   }
 };
 
-export const getOrders = async () => {
-  // Trigger cleanup before fetching
-  await cleanupOldOrders();
+export const getOrders = async (restaurantId: string) => {
+  // Trigger cleanup before fetching for this specific restaurant
+  await cleanupOldOrders(restaurantId);
 
   try {
     const { data, error } = await supabase
       .from('orders')
       .select('*')
+      .eq('restaurant_id', restaurantId)
       .order('created_at', { ascending: false });
       
     if (error) throw error;
@@ -120,17 +119,15 @@ export const getOrders = async () => {
         if (tNum && typeof tNum === 'string') {
             if (tNum.startsWith(DELIVERY_PREFIX)) {
                 const parts = tNum.split('|||');
-                // parts[0] is prefix, parts[1] is phone, parts[2] is address
                 return {
                     ...order,
                     type: 'delivery',
                     phone: parts[1] || '',
                     address: parts[2] || '',
-                    table_number: 'توصيل' // Friendly display for UI
+                    table_number: 'توصيل' 
                 };
             } else if (tNum.startsWith(DINEIN_PREFIX)) {
                 const parts = tNum.split('|||');
-                // parts[0] is prefix, parts[1] is table_num, parts[2] is code
                 return {
                     ...order,
                     type: 'dine_in',
@@ -139,8 +136,6 @@ export const getOrders = async () => {
                 };
             }
         }
-        
-        // Default (Legacy orders or plain table numbers)
         return { ...order, type: 'dine_in' };
     });
 
@@ -148,7 +143,11 @@ export const getOrders = async () => {
   } catch (error) {
     console.warn("Fetching orders failed (offline mode), loading locally:", error);
     const storedOrders = localStorage.getItem(ORDERS_STORAGE_KEY);
-    return storedOrders ? JSON.parse(storedOrders) : [];
+    if (!storedOrders) return [];
+    
+    const orders: Order[] = JSON.parse(storedOrders);
+    // Filter local orders by restaurant_id
+    return orders.filter(o => o.restaurant_id === restaurantId);
   }
 };
 
