@@ -1,4 +1,3 @@
-
 import { RestaurantConfig, Dish, Category } from '../types';
 import { DEFAULT_CONFIG } from '../constants';
 import { supabase } from './supabase';
@@ -27,7 +26,6 @@ export const getRestaurantConfig = async (identifier?: string): Promise<Restaura
   let config: RestaurantConfig = { ...DEFAULT_CONFIG };
   
   try {
-// 1. تحديد المعرف سواء كان ID أو اسم مختصر (Slug)
     let uid = identifier;
     if (!uid) {
         const { data: { session } } = await supabase.auth.getSession();
@@ -36,7 +34,7 @@ export const getRestaurantConfig = async (identifier?: string): Promise<Restaura
 
     if (!uid) return config;
 
-    // 2. تجهيز البحث في قاعدة البيانات
+    // التحقق من نوع المعرف (UUID أو Slug)
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(uid);
     let query = supabase.from('profiles').select('*');
 
@@ -46,29 +44,15 @@ export const getRestaurantConfig = async (identifier?: string): Promise<Restaura
         query = query.eq('slug', uid);
     }
 
-    const { data: profileData, error: profileError } = await query.maybeSingle();
-
-    // 3. دمج البيانات (هنا نضمن بقاء التصميم ووصول الطلب)
-    if (profileData) {
-        const settings = profileData.settings || {};
-        config = {
-            ...config,
-            id: profileData.id, // هذا السطر هو مفتاح وصول الطلبات إليك!
-            name: profileData.restaurant_name ?? config.name,
-            description: profileData.description ?? config.description,
-            logo: profileData.logo_url ?? config.logo,
-            coverImage: profileData.cover_url ?? config.coverImage,
-            // ... (بقية الإعدادات تظل كما هي لضمان التصميم)
-        };
-    }
     const { data: profile } = await query.maybeSingle();
 
     if (profile) {
         const settings = profile.settings || {};
-        const realId = profile.id; // هذا هو المعرف الحقيقي الذي نحتاجه للطلبات
+        const realId = profile.id;
 
         config = {
             ...config,
+            id: realId, // تخزين المعرف الحقيقي لضمان وصول الطلبات بشكل صحيح
             name: profile.restaurant_name ?? config.name,
             description: profile.description ?? config.description,
             logo: profile.logo_url ?? config.logo,
@@ -82,7 +66,6 @@ export const getRestaurantConfig = async (identifier?: string): Promise<Restaura
             workingHours: settings.workingHours ?? config.workingHours
         };
 
-        // جلب الأقسام والأطباق باستخدام المعرف الحقيقي
         const [{ data: categoriesData }, { data: itemsData }] = await Promise.all([
             supabase.from('categories').select('*').eq('user_id', realId).order('created_at', { ascending: true }),
             supabase.from('items').select('*').eq('user_id', realId).order('id', { ascending: true })
@@ -110,8 +93,8 @@ export const getRestaurantConfig = async (identifier?: string): Promise<Restaura
                 calories: item.calories
             }));
         }
-
-        // تخزين المعرف الحقيقي في الكائن لاستخدامه لاحقاً في المنيو
+        
+        // ربط المعرف الحقيقي لأغراض التوافق الإضافي
         (config as any).restaurant_db_id = realId;
     }
 
@@ -228,7 +211,8 @@ export const updateCategoryInSupabase = async (category: Category): Promise<bool
         if (!user) return true;
         const { error } = await supabase.from('categories').update({ 
             name: category.name, 
-            image: category.image || null
+            image: category.image || null,
+            is_available: category.isAvailable
         }).eq('id', category.id).eq('user_id', user.id); 
         return !error;
     } catch (e) {
