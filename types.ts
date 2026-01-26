@@ -18,6 +18,7 @@ export interface Category {
   name: string;
   image?: string;
   isAvailable: boolean; // Added isAvailable
+  // user_id is handled by backend RLS, but conceptually exists
 }
 
 export interface SocialLinks {
@@ -31,17 +32,17 @@ export interface SocialLinks {
 export interface Offer {
   id: string;
   title: string;
-  description?: string;
-  price: number;
-  originalPrice?: number;
-  image: string;
+  description?: string; // Optional now
+  price: number;        // Current Price (Discounted)
+  originalPrice?: number; // Old Price (Before Discount)
+  image: string;        // Added image
   active: boolean;
 }
 
 export interface DaySchedule {
   isOpen: boolean;
-  start: string;
-  end: string;
+  start: string; // "09:00"
+  end: string;   // "23:00"
 }
 
 export interface WorkingHours {
@@ -55,7 +56,6 @@ export interface WorkingHours {
 }
 
 export interface RestaurantConfig {
-  id?: string; // المعرف الحقيقي للمطعم من قاعدة البيانات
   name: string;
   logo: string;
   coverImage: string;
@@ -63,13 +63,12 @@ export interface RestaurantConfig {
   currency: string;
   primaryColor: string;
   socials: SocialLinks;
-  categories: Category[];
-  dishes: Dish[];
+  categories: Category[]; // Fetched from 'categories' table
+  dishes: Dish[];         // Fetched from 'items' table
   offers: Offer[];
   languages: Language[];
-  workingHours: WorkingHours;
-  isOrderingEnabled: boolean;
-  isDeliveryEnabled?: boolean; // حقل جديد للتحكم في خدمة التوصيل
+  workingHours: WorkingHours; // Added working hours
+  isOrderingEnabled: boolean; // Controls if customers can place orders
 }
 
 export interface CartItem {
@@ -79,15 +78,17 @@ export interface CartItem {
 
 export interface Order {
   id?: number;
-  restaurant_id: string;
+  restaurant_id: string; // Links order to a specific restaurant owner
   customer_name: string;
-  table_number: string;
+  table_number: string; // Used for Table # OR "Delivery" label
   items: CartItem[];
   total: number;
   status: 'pending' | 'preparing' | 'completed' | 'cancelled';
   created_at?: string;
+  // Delivery Fields
   type?: 'dine_in' | 'delivery';
   phone?: string;
   address?: string;
+  // Anti-spam
   verification_code?: string;
 }

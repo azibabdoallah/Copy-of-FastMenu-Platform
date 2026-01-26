@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import CustomerMenu from './components/CustomerMenu';
 import AdminDashboard from './components/AdminDashboard';
 import LandingPage from './components/LandingPage';
@@ -51,7 +52,7 @@ const App: React.FC = () => {
       clearLocalData();
       setConfig(DEFAULT_CONFIG);
       await supabase.auth.signOut();
-      window.location.href = '/auth'; 
+      window.location.hash = '/auth'; 
   };
 
   if (loading) {
@@ -66,23 +67,20 @@ const App: React.FC = () => {
   }
 
   return (
-    <BrowserRouter>
+    <HashRouter>
       <Routes>
         <Route path="/" element={<PublicRoute><LandingPage /></PublicRoute>} />
         <Route path="/auth" element={<PublicRoute><AuthPage /></PublicRoute>} />
         <Route path="/select" element={<ProtectedRoute><SelectionPage /></ProtectedRoute>} />
         <Route path="/admin" element={<ProtectedRoute><AdminDashboard config={config} onUpdate={handleUpdateConfig} onLogout={handleLogout} /></ProtectedRoute>} />
         
-        {/* المسارات الاحترافية للمنيو */}
+        {/* مسار المنيو العادي والمسار باستخدام الـ Slug */}
         <Route path="/menu/:identifier" element={<CustomerMenu config={config} />} />
         <Route path="/menu" element={<CustomerMenu config={config} />} />
         
-        {/* دعم الروابط المختصرة مباشرة في الجذر (e.g. site.com/my-restaurant) */}
-        <Route path="/:identifier" element={<CustomerMenu config={config} />} />
-        
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
-    </BrowserRouter>
+    </HashRouter>
   );
 };
 
