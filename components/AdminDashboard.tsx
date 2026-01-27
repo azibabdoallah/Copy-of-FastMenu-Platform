@@ -11,6 +11,9 @@ import {
     updateDishInSupabase, 
     addCategoryToSupabase,
     updateCategoryInSupabase,
+import { 
+  Settings, Utensils, ..., ShieldCheck, Bike, ... 
+} from 'lucide-react';
     getRestaurantConfig
 } from '../services/storageService';
 import { 
@@ -855,14 +858,20 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ config: initialConfig, 
                         {orders.map(order => (
                             <div key={order.id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col">
                                 <div className={`p-4 border-b flex justify-between items-start ${order.status === 'completed' ? 'bg-gray-50' : 'bg-white'}`}>
-                                    <div>
-                                        <div className="flex items-center gap-2 mb-1">
-                                            {order.type === 'delivery' ? (
-                                                 <span className="font-bold text-lg text-blue-600 flex items-center gap-1"><Bike size={18}/> توصيل</span>
-                                            ) : (
-                                                 <span className="font-bold text-lg">{t.table} {order.table_number}</span>
-                                            )}
-                                            
+<div className="flex items-center gap-2 mb-1">
+    {order.type === 'delivery' ? (
+        <span className="font-bold text-lg text-blue-600 flex items-center gap-1"><Bike size={18}/> توصيل</span>
+    ) : (
+        <div className="flex flex-col">
+            <span className="font-bold text-lg">{t.table} {order.table_number}</span>
+            {/* عرض رمز الأمان بوضوح للمطابقة اليدوية */}
+            {order.verification_code && (
+                <div className="mt-1 flex items-center gap-1 text-[11px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full border border-amber-200 font-black">
+                    <ShieldCheck size={12} /> رمز الأمان: {order.verification_code}
+                </div>
+            )}
+        </div>
+    )}                                            
                                             {order.status === 'pending' && <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-0.5 rounded-full font-bold animate-pulse">{t.new}</span>}
                                             {order.status === 'preparing' && <span className="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded-full font-bold">{t.preparing}</span>}
                                             {order.status === 'completed' && <span className="bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded-full font-bold">{t.completed}</span>}
