@@ -69,7 +69,6 @@ export interface RestaurantConfig {
   languages: Language[];
   workingHours: WorkingHours;
   isOrderingEnabled: boolean;
-  isDeliveryEnabled?: boolean; // حقل جديد للتحكم في خيار التوصيل
 }
 
 export interface CartItem {
