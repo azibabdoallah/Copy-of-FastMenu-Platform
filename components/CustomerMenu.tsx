@@ -1,11 +1,10 @@
-
-import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { RestaurantConfig, Dish, CartItem, Offer, Language, Category, WorkingHours } from '../types';
+import React, { useState, useEffect, useMemo } from 'react';
+import { RestaurantConfig, Dish, CartItem, Offer, Language, WorkingHours } from '../types';
 import DishCard from './DishCard';
 import { submitOrder } from '../services/orderService';
 import { getRestaurantConfig } from '../services/storageService';
 import { supabase } from '../services/supabase';
-import { ShoppingBag, Plus, Minus, X, CheckCircle, LogOut, Loader2, ArrowRight, Ban, Facebook, Instagram, Flame, Star, Clock, Bike, Utensils } from 'lucide-react';
+import { ShoppingBag, Plus, Minus, X, CheckCircle, LogOut, Loader2, ArrowRight, Facebook, Instagram, Flame, Star, Clock, Bike, Utensils, ShieldCheck } from 'lucide-react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { TRANSLATIONS } from '../constants';
 
@@ -20,7 +19,7 @@ const WhatsAppIcon = () => (
 );
 
 const TikTokIcon = () => (
-  <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" stroke="none">
+  <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
     <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/>
   </svg>
 );
@@ -52,6 +51,7 @@ const CustomerMenu: React.FC<CustomerMenuProps> = ({ config: initialConfig }) =>
   const [tableNumber, setTableNumber] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
   const [customerAddress, setCustomerAddress] = useState('');
+  const [securityCode, setSecurityCode] = useState(''); // إضافة الرمز اليدوي
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentOfferIndex, setCurrentOfferIndex] = useState(0);
@@ -85,12 +85,7 @@ const CustomerMenu: React.FC<CustomerMenuProps> = ({ config: initialConfig }) =>
         try {
             const idToFetch = identifier || targetUserId;
             const fetchedConfig = await getRestaurantConfig(idToFetch || undefined);
-            
-            // القاعدة الصارمة: استخدام fetchedConfig.id كمعرف للمالك للطلبات
-            if (fetchedConfig.id) {
-                setMenuOwnerId(fetchedConfig.id);
-            }
-
+            if (fetchedConfig.id) { setMenuOwnerId(fetchedConfig.id); }
             setCurrentConfig(fetchedConfig);
             setMenuDishes(fetchedConfig.dishes);
         } catch (error) {
@@ -116,21 +111,15 @@ const CustomerMenu: React.FC<CustomerMenuProps> = ({ config: initialConfig }) =>
       const sections = [];
       if (activeOffers.length > 0) sections.push('offers');
       currentConfig.categories.filter(c => c.isAvailable).forEach(c => sections.push(c.id));
-
       let current = '';
       for (const sectionId of sections) {
          const el = document.getElementById(`section-${sectionId}`);
          if (el) {
              const rect = el.getBoundingClientRect();
-             if (rect.top >= 0 && rect.top < 300) {
-                 current = sectionId;
-                 break;
-             }
+             if (rect.top >= 0 && rect.top < 300) { current = sectionId; break; }
          }
       }
-      if (current && current !== activeCategory) {
-        setActiveCategory(current);
-      }
+      if (current && current !== activeCategory) { setActiveCategory(current); }
     };
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
@@ -146,19 +135,14 @@ const CustomerMenu: React.FC<CustomerMenuProps> = ({ config: initialConfig }) =>
   };
 
   const filteredDishes = (categoryId: string) => {
-    return menuDishes.filter(d => 
-      d.categoryId === categoryId && 
-      d.isAvailable === true
-    );
+    return menuDishes.filter(d => d.categoryId === categoryId && d.isAvailable === true);
   };
 
   const addToCart = (dish: Dish, quantity: number = 1) => {
     if (!isOrderingEnabled) return;
     setCart(prev => {
       const existing = prev.find(item => item.dish.id === dish.id);
-      if (existing) {
-        return prev.map(item => item.dish.id === dish.id ? { ...item, quantity: item.quantity + quantity } : item);
-      }
+      if (existing) { return prev.map(item => item.dish.id === dish.id ? { ...item, quantity: item.quantity + quantity } : item); }
       return [...prev, { dish, quantity: 1 }];
     });
     setSelectedDish(null);
@@ -166,23 +150,15 @@ const CustomerMenu: React.FC<CustomerMenuProps> = ({ config: initialConfig }) =>
 
    const handleOfferClick = (offer: Offer) => {
       const offerAsDish: Dish = {
-          id: offer.id,
-          name: offer.title,
-          description: offer.description || t.offers,
-          price: offer.price,
-          image: offer.image,
-          categoryId: 'offer',
-          prepTime: 0, 
-          isAvailable: true
+          id: offer.id, name: offer.title, description: offer.description || t.offers,
+          price: offer.price, image: offer.image, categoryId: 'offer', prepTime: 0, isAvailable: true
       };
       setSelectedDish(offerAsDish);
   };
 
   const updateQuantity = (dishId: string, delta: number) => {
     setCart(prev => prev.map(item => {
-      if (item.dish.id === dishId) {
-        return { ...item, quantity: Math.max(0, item.quantity + delta) };
-      }
+      if (item.dish.id === dishId) { return { ...item, quantity: Math.max(0, item.quantity + delta) }; }
       return item;
     }).filter(item => item.quantity > 0));
   };
@@ -196,6 +172,7 @@ const CustomerMenu: React.FC<CustomerMenuProps> = ({ config: initialConfig }) =>
     if (!customerName) return;
     if (orderType === 'dine_in' && !tableNumber) return;
     if (orderType === 'delivery' && (!customerPhone || !customerAddress)) return;
+    if (!securityCode) return; // حقل إلزامي
 
     if (!menuOwnerId) {
         alert("عذراً، لا يمكن إرسال الطلب في وضع المعاينة العامة.");
@@ -212,7 +189,8 @@ const CustomerMenu: React.FC<CustomerMenuProps> = ({ config: initialConfig }) =>
         total: cartTotal,
         type: orderType,
         phone: customerPhone,
-        address: customerAddress
+        address: customerAddress,
+        verification_code: securityCode // إرسال الرمز اليدوي
       });
       setCart([]);
       setIsCheckingOut(false);
@@ -222,6 +200,7 @@ const CustomerMenu: React.FC<CustomerMenuProps> = ({ config: initialConfig }) =>
       setTableNumber('');
       setCustomerPhone('');
       setCustomerAddress('');
+      setSecurityCode('');
     } catch (error) {
       alert("حدث خطأ أثناء إرسال الطلب.");
     } finally {
@@ -267,8 +246,7 @@ const CustomerMenu: React.FC<CustomerMenuProps> = ({ config: initialConfig }) =>
       const [h, m] = time.split(':');
       let hour = parseInt(h);
       const ampm = hour >= 12 ? 'pm' : 'am';
-      hour = hour % 12;
-      hour = hour ? hour : 12;
+      hour = hour % 12; hour = hour ? hour : 12;
       return `${hour < 10 ? '0'+hour : hour}:${m} ${ampm}`;
   };
 
@@ -282,11 +260,14 @@ const CustomerMenu: React.FC<CustomerMenuProps> = ({ config: initialConfig }) =>
 
   return (
     <div className="min-h-screen bg-white pb-20 font-sans text-slate-900">
+      {/* Header - إخفاء سهم العودة للزبائن */}
       <div className="px-3 pt-3 flex justify-between items-center bg-white mb-2 z-30 relative">
          <div className="w-8"></div>
-         <button onClick={handleExit} className="bg-gray-50 text-gray-700 p-2 rounded-full hover:bg-gray-100 transition-colors shadow-sm border border-gray-100">
-             {isOwner ? <LogOut size={16} /> : <ArrowRight size={16} className={language === 'ar' ? 'rotate-0' : 'rotate-180'} />}
-        </button>
+         {isOwner && (
+           <button onClick={handleExit} className="bg-gray-50 text-gray-700 p-2 rounded-full hover:bg-gray-100 transition-colors shadow-sm border border-gray-100">
+               <LogOut size={16} />
+           </button>
+         )}
       </div>
 
       <div className="px-3 mb-4">
@@ -324,11 +305,6 @@ const CustomerMenu: React.FC<CustomerMenuProps> = ({ config: initialConfig }) =>
                             <Clock size={10} />
                         </button>
                     )}
-                    {!isOrderingEnabled && (
-                        <span className="bg-gray-100 text-gray-600 text-[10px] font-bold px-2 py-0.5 rounded border border-gray-200">
-                            {t.closedNow}
-                        </span>
-                    )}
                   </div>
                   {isOrderingEnabled && (
                       <div className="flex bg-gray-100 p-0.5 rounded-lg border border-gray-200">
@@ -343,30 +319,30 @@ const CustomerMenu: React.FC<CustomerMenuProps> = ({ config: initialConfig }) =>
               </div>
           </div>
           <div className="flex flex-col items-end gap-2 pb-1">
-             <div className="flex gap-2">
-                 {currentConfig.socials.instagram && (
-                     <a href={getSocialUrl('instagram', currentConfig.socials.instagram)} target="_blank" rel="noreferrer" className="text-gray-400 hover:text-pink-600 bg-gray-50 p-1.5 rounded-full transition-colors"><Instagram size={18} /></a>
-                 )}
-                 {currentConfig.socials.facebook && (
-                     <a href={getSocialUrl('facebook', currentConfig.socials.facebook)} target="_blank" rel="noreferrer" className="text-gray-400 hover:text-blue-600 bg-gray-50 p-1.5 rounded-full transition-colors"><Facebook size={18} /></a>
-                 )}
-                 {currentConfig.socials.tiktok && (
-                     <a href={getSocialUrl('tiktok', currentConfig.socials.tiktok)} target="_blank" rel="noreferrer" className="text-gray-400 hover:text-black bg-gray-50 p-1.5 rounded-full transition-colors"><TikTokIcon /></a>
-                 )}
-             </div>
-             {currentConfig.socials.googleMaps && (
-                 <a href={currentConfig.socials.googleMaps} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 bg-yellow-50 text-yellow-600 border border-yellow-100 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-yellow-100 transition-colors">
-                     <Star size={12} className="fill-yellow-600" />
-                     <span>{t.rateExp}</span>
-                 </a>
-             )}
+              <div className="flex gap-2">
+                  {currentConfig.socials.instagram && (
+                      <a href={getSocialUrl('instagram', currentConfig.socials.instagram)} target="_blank" rel="noreferrer" className="text-gray-400 hover:text-pink-600 bg-gray-50 p-1.5 rounded-full transition-colors"><Instagram size={18} /></a>
+                  )}
+                  {currentConfig.socials.facebook && (
+                      <a href={getSocialUrl('facebook', currentConfig.socials.facebook)} target="_blank" rel="noreferrer" className="text-gray-400 hover:text-blue-600 bg-gray-50 p-1.5 rounded-full transition-colors"><Facebook size={18} /></a>
+                  )}
+                  {currentConfig.socials.tiktok && (
+                      <a href={getSocialUrl('tiktok', currentConfig.socials.tiktok)} target="_blank" rel="noreferrer" className="text-gray-400 hover:text-black bg-gray-50 p-1.5 rounded-full transition-colors"><TikTokIcon /></a>
+                  )}
+              </div>
+              {currentConfig.socials.googleMaps && (
+                  <a href={currentConfig.socials.googleMaps} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 bg-yellow-50 text-yellow-600 border border-yellow-100 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-yellow-100 transition-colors">
+                      <Star size={12} className="fill-yellow-600" />
+                      <span>{t.rateExp}</span>
+                  </a>
+              )}
           </div>
       </div>
 
       <div className="sticky top-0 z-20 bg-white/95 backdrop-blur-sm py-2 border-b border-gray-50 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.02)]">
         <div className="flex overflow-x-auto no-scrollbar px-3 gap-2">
           {activeOffers.length > 0 && (
-             <button onClick={() => scrollToCategory('offers')} className={`whitespace-nowrap px-4 py-1.5 rounded-full text-xs font-bold transition-all border flex items-center gap-1 ${activeCategory === 'offers' ? 'bg-black border-black text-primary shadow-md' : 'bg-yellow-50 border-yellow-100 text-black hover:bg-yellow-100'}`}>
+              <button onClick={() => scrollToCategory('offers')} className={`whitespace-nowrap px-4 py-1.5 rounded-full text-xs font-bold transition-all border flex items-center gap-1 ${activeCategory === 'offers' ? 'bg-black border-black text-primary shadow-md' : 'bg-yellow-50 border-yellow-100 text-black hover:bg-yellow-100'}`}>
               <Flame size={12} className={activeCategory === 'offers' ? 'fill-primary' : 'fill-black'} />
               {t.offers}
             </button>
@@ -417,28 +393,6 @@ const CustomerMenu: React.FC<CustomerMenuProps> = ({ config: initialConfig }) =>
           <span className="font-bold text-xs text-primary">{cartTotal} {currentConfig.currency}</span>
         </button>
       )}
-      
-      {isHoursModalOpen && currentConfig.workingHours && (
-         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in" onClick={() => setIsHoursModalOpen(false)}>
-             <div className="bg-white w-full max-w-sm mx-4 rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95" onClick={e => e.stopPropagation()}>
-                 <div className="p-4 border-b flex justify-between items-center bg-gray-50">
-                     <h3 className="font-bold text-lg flex items-center gap-2"><Clock size={20} /> {t.workingHours}</h3>
-                     <button onClick={() => setIsHoursModalOpen(false)} className="bg-gray-200 p-1.5 rounded-full"><X size={16} /></button>
-                 </div>
-                 <div className="p-2 bg-white">
-                     {daysOrder.map(day => {
-                         const schedule = currentConfig.workingHours[day];
-                         return (
-                             <div key={day} className="flex justify-between items-center p-3 border-b border-gray-50 last:border-0 hover:bg-gray-50 rounded-lg">
-                                 <span className="font-medium text-gray-700">{t[day]}</span>
-                                 <span className={`text-sm font-bold ${schedule.isOpen ? 'text-gray-900' : 'text-red-500'}`}>{schedule.isOpen ? `${formatTime(schedule.start)} - ${formatTime(schedule.end)}` : t.closed}</span>
-                             </div>
-                         );
-                     })}
-                 </div>
-             </div>
-         </div>
-      )}
 
       {isCartOpen && (
         <div className="fixed inset-0 z-50 flex items-end md:items-center justify-end md:justify-center bg-black/50 backdrop-blur-sm animate-in fade-in" onClick={() => setIsCartOpen(false)}>
@@ -462,7 +416,6 @@ const CustomerMenu: React.FC<CustomerMenuProps> = ({ config: initialConfig }) =>
                   </div>
                 </div>
               ))}
-              {cart.length === 0 && <p className="text-center text-gray-400 py-10">{t.emptyCart}</p>}
             </div>
             <div className="p-4 border-t bg-gray-50 rounded-b-2xl">
               <div className="flex justify-between items-center mb-4">
@@ -471,10 +424,6 @@ const CustomerMenu: React.FC<CustomerMenuProps> = ({ config: initialConfig }) =>
               </div>
               {isCheckingOut ? (
                 <form onSubmit={handleCheckout} className="space-y-3 animate-in fade-in">
-                  <div className="bg-gray-50 p-3 rounded-lg border border-gray-100 mb-3 flex items-center gap-2">
-                      {orderType === 'dine_in' ? <Utensils size={18} className="text-gray-500"/> : <Bike size={18} className="text-black"/>}
-                      <span className="font-bold text-sm">{orderType === 'dine_in' ? t.dineIn : t.delivery}</span>
-                  </div>
                   <input required placeholder={t.namePlaceholder} className="w-full border rounded-lg px-3 py-2 text-sm focus:border-black outline-none" value={customerName} onChange={e => setCustomerName(e.target.value)} />
                   {orderType === 'dine_in' ? (
                       <input required placeholder={t.tablePlaceholder} className="w-full border rounded-lg px-3 py-2 text-sm focus:border-black outline-none" value={tableNumber} onChange={e => setTableNumber(e.target.value)} />
@@ -484,19 +433,35 @@ const CustomerMenu: React.FC<CustomerMenuProps> = ({ config: initialConfig }) =>
                         <textarea required placeholder={t.addressPlaceholder} className="w-full border rounded-lg px-3 py-2 text-sm focus:border-black outline-none h-20 resize-none" value={customerAddress} onChange={e => setCustomerAddress(e.target.value)} />
                       </>
                   )}
+                  {/* خانة رمز الأمان الجديدة */}
+                  <div className="bg-amber-50 p-3 rounded-lg border border-amber-100">
+                    <div className="flex items-center gap-2 mb-1">
+                      <ShieldCheck size={16} className="text-amber-600" />
+                      <span className="text-[10px] font-bold text-amber-800 uppercase">رمز التحقق (أسفل الكود)</span>
+                    </div>
+                    <input 
+                      required 
+                      maxLength={4}
+                      type="text" 
+                      placeholder="أدخل الـ 4 أرقام" 
+                      className="w-full border-amber-200 rounded-lg px-3 py-2 text-sm focus:border-black outline-none font-black" 
+                      value={securityCode} 
+                      onChange={e => setSecurityCode(e.target.value.replace(/\D/g, ''))} 
+                    />
+                  </div>
+
                   <div className="flex gap-2 pt-2">
                     <button type="button" onClick={() => setIsCheckingOut(false)} className="flex-1 py-2 text-gray-600 text-sm font-medium hover:bg-gray-200 rounded-lg">{t.back}</button>
                     <button type="submit" disabled={isSubmitting} className="flex-[2] py-2 bg-black text-white text-sm font-bold rounded-lg shadow hover:bg-gray-800 disabled:opacity-50">{isSubmitting ? t.sending : t.confirmOrder}</button>
                   </div>
                 </form>
               ) : (
-                <button onClick={() => setIsCheckingOut(true)} disabled={cart.length === 0} className="w-full py-3 bg-black text-primary font-bold rounded-xl shadow-lg hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">{t.completeOrder}</button>
+                <button onClick={() => setIsCheckingOut(true)} disabled={cart.length === 0} className="w-full py-3 bg-black text-primary font-bold rounded-xl shadow-lg hover:bg-gray-800 disabled:opacity-50 transition-colors">{t.completeOrder}</button>
               )}
             </div>
           </div>
         </div>
       )}
-
       {orderSuccess && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in">
           <div className="bg-white p-8 rounded-2xl shadow-2xl flex flex-col items-center text-center max-w-sm mx-4 animate-in zoom-in">
@@ -506,30 +471,7 @@ const CustomerMenu: React.FC<CustomerMenuProps> = ({ config: initialConfig }) =>
           </div>
         </div>
       )}
-
-      {selectedDish && (
-        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/50 p-0 md:p-4 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setSelectedDish(null)}>
-          <div className="bg-white w-full md:max-w-lg md:rounded-2xl rounded-t-2xl overflow-hidden max-h-[90vh] overflow-y-auto flex flex-col shadow-2xl animate-in slide-in-from-bottom duration-300" onClick={e => e.stopPropagation()}>
-            <div className="relative h-64 shrink-0">
-               <img src={selectedDish.image} alt={selectedDish.name} className="w-full h-full object-cover" />
-               <button onClick={() => setSelectedDish(null)} className="absolute top-4 right-4 bg-white/80 p-2 rounded-full shadow-md text-gray-800"><X size={20} /></button>
-            </div>
-            <div className="p-6">
-              <div className="flex justify-between items-start mb-2">
-                <h2 className="text-2xl font-bold">{selectedDish.name}</h2>
-                <span className="text-xl font-bold text-black">{selectedDish.price} {currentConfig.currency}</span>
-              </div>
-              <p className="text-gray-600 leading-relaxed mb-6">{selectedDish.description}</p>
-              <button onClick={() => addToCart(selectedDish)} disabled={!isOrderingEnabled} className={`w-full font-bold py-3.5 rounded-xl shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2 ${isOrderingEnabled ? 'bg-black hover:bg-gray-800 text-primary' : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}>
-                <ShoppingBag size={20} />
-                {isOrderingEnabled ? t.addToOrder : t.orderingDisabled}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
-
 export default CustomerMenu;
