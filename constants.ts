@@ -1,3 +1,4 @@
+
 import { RestaurantConfig } from './types';
 
 const defaultSchedule = { isOpen: true, start: "09:00", end: "23:00" };
@@ -11,6 +12,7 @@ export const DEFAULT_CONFIG: RestaurantConfig = {
   primaryColor: "#fbbf24", // Yellow
   languages: ['ar'],
   isOrderingEnabled: true, // Default to true
+  isDeliveryEnabled: true, // تفعيل التوصيل افتراضياً
   socials: {
     whatsapp: "966500000000",
     instagram: "fastmenu",
@@ -178,6 +180,8 @@ export const TRANSLATIONS = {
     restaurantSettings: "إعدادات المطعم",
     orderingPhone: "استقبال الطلبات عبر الهاتف",
     orderingPhoneDesc: "تفعيل أو إيقاف إمكانية إرسال الطلبات من صفحة المنيو",
+    deliveryService: "خدمة التوصيل",
+    deliveryServiceDesc: "تفعيل أو إيقاف خيار طلب التوصيل للزبائن",
     active: "مفعل",
     inactive: "متوقف",
     closed: "مغلق",
@@ -316,6 +320,8 @@ export const TRANSLATIONS = {
     restaurantSettings: "Paramètres du restaurant",
     orderingPhone: "Commandes via mobile",
     orderingPhoneDesc: "Activer ou désactiver la commande depuis la page du menu",
+    deliveryService: "Service de livraison",
+    deliveryServiceDesc: "Activer ou désactiver l'option de livraison pour les clients",
     active: "Activé",
     inactive: "Désactivé",
     closed: "Fermé",

@@ -1,3 +1,4 @@
+
 import { RestaurantConfig, Dish, Category } from '../types';
 import { DEFAULT_CONFIG } from '../constants';
 import { supabase } from './supabase';
@@ -60,6 +61,7 @@ export const getRestaurantConfig = async (identifier?: string): Promise<Restaura
             currency: settings.currency ?? config.currency,
             primaryColor: settings.primaryColor ?? config.primaryColor,
             isOrderingEnabled: settings.isOrderingEnabled ?? true,
+            isDeliveryEnabled: settings.isDeliveryEnabled ?? true, // الجلب من Supabase
             socials: { ...config.socials, ...(settings.socials || {}) },
             offers: settings.offers ?? config.offers,
             languages: settings.languages ?? config.languages,
@@ -124,6 +126,7 @@ export const saveRestaurantConfig = async (config: RestaurantConfig): Promise<bo
             offers: config.offers,
             languages: config.languages,
             isOrderingEnabled: config.isOrderingEnabled,
+            isDeliveryEnabled: config.isDeliveryEnabled, // الحفظ في Supabase
             workingHours: config.workingHours
         }
     };
