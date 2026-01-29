@@ -1,9 +1,0 @@
-{
-  "name": "Copy of FastMenu Platform",
-  "description": "A comprehensive digital menu platform featuring a customer-facing menu interface and a restaurant owner dashboard. Includes AI-powered dish description generation using Gemini.",
-  "requestFramePermissions": [
-    "camera",
-    "microphone",
-    "geolocation"
-  ]
-}
