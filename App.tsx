@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import CustomerMenu from './components/CustomerMenu';
@@ -18,19 +17,11 @@ const App: React.FC = () => {
   const [config, setConfig] = useState<RestaurantConfig>(DEFAULT_CONFIG);
   const [loading, setLoading] = useState(true);
 
-  // وظيفة لتطبيق اللون المخصص على صفحة العميل فقط عبر متغير CSS
-  const applyCustomerBranding = (color: string) => {
-    if (color) {
-      document.documentElement.style.setProperty('--customer-brand', color);
-    }
-  };
-
   const loadData = async () => {
     setLoading(true);
     try {
         const data = await getRestaurantConfig();
         setConfig(data);
-        applyCustomerBranding(data.primaryColor);
     } catch (error) {
         console.error("Failed to load data", error);
     } finally {
@@ -38,29 +29,19 @@ const App: React.FC = () => {
     }
   };
 
+  // Load data from Supabase on mount AND on Auth Change
   useEffect(() => {
-    const initAuth = async () => {
-      try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        if (error && (error.message.includes('refresh_token_not_found') || error.message.includes('Invalid Refresh Token'))) {
-          await supabase.auth.signOut();
-          clearLocalData();
-          setConfig(DEFAULT_CONFIG);
-        }
-      } catch (err) {
-        console.warn("Auth check failed:", err);
-      }
-      await loadData();
-    };
+    // 1. Initial Load
+    loadData();
 
-    initAuth();
-
+    // 2. Listen for Auth Changes (Sign In / Sign Out)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
         if (event === 'SIGNED_OUT') {
+            // CRITICAL: Clear all sensitive data when user logs out
             clearLocalData();
-            setConfig(DEFAULT_CONFIG);
-            applyCustomerBranding(DEFAULT_CONFIG.primaryColor);
+            setConfig(DEFAULT_CONFIG); // Reset state to default
         } else if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
+            // Re-fetch data for the new user
             loadData();
         }
     });
@@ -70,23 +51,27 @@ const App: React.FC = () => {
     };
   }, []);
 
+  // Function to update config in state and Supabase
   const handleUpdateConfig = async (newConfig: RestaurantConfig) => {
+    // Optimistic update
     setConfig(newConfig);
-    applyCustomerBranding(newConfig.primaryColor);
+    // Persist to cloud
     await saveRestaurantConfig(newConfig);
   };
 
   const handleLogout = async () => {
+      // Clear data locally first
       clearLocalData();
       setConfig(DEFAULT_CONFIG);
-      applyCustomerBranding(DEFAULT_CONFIG.primaryColor);
+      
       await supabase.auth.signOut();
+      // Explicit logout redirects to Auth page
       window.location.hash = '/auth'; 
   };
 
   if (loading) {
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 text-amber-400">
+        <div className="min-h-screen flex items-center justify-center bg-gray-50 text-primary">
             <div className="flex flex-col items-center gap-2">
                 <Loader2 className="animate-spin" size={40} />
                 <p>جاري تحميل البيانات...</p>
@@ -98,14 +83,57 @@ const App: React.FC = () => {
   return (
     <HashRouter>
       <Routes>
-        <Route path="/" element={<PublicRoute><LandingPage /></PublicRoute>} />
-        <Route path="/auth" element={<PublicRoute><AuthPage /></PublicRoute>} />
-        <Route path="/select" element={<ProtectedRoute><SelectionPage /></ProtectedRoute>} />
-        <Route path="/admin" element={<ProtectedRoute><AdminDashboard config={config} onUpdate={handleUpdateConfig} onLogout={handleLogout}/></ProtectedRoute>} />
+        {/* 1. Landing Page (Public Only - Redirects owners to Select) */}
+        <Route 
+          path="/" 
+          element={
+            <PublicRoute>
+              <LandingPage />
+            </PublicRoute>
+          } 
+        />
         
-        <Route path="/menu" element={<CustomerMenu config={config} />} />
-        <Route path="/menu/:restaurantName" element={<CustomerMenu config={config} />} />
+        {/* 2. Auth Page (Public Only - Redirects owners to Select) */}
+        <Route 
+          path="/auth" 
+          element={
+            <PublicRoute>
+              <AuthPage />
+            </PublicRoute>
+          } 
+        />
+
+        {/* 3. Selection Page (Protected Hub) */}
+        <Route 
+          path="/select" 
+          element={
+            <ProtectedRoute>
+              <SelectionPage />
+            </ProtectedRoute>
+          } 
+        />
         
+        {/* 4. Admin Dashboard (Protected) */}
+        <Route 
+          path="/admin" 
+          element={
+            <ProtectedRoute>
+              <AdminDashboard 
+                config={config} 
+                onUpdate={handleUpdateConfig} 
+                onLogout={handleLogout}
+              />
+            </ProtectedRoute>
+          } 
+        />
+
+        {/* 5. Customer Menu (Public Access for everyone) */}
+        <Route 
+          path="/menu" 
+          element={<CustomerMenu config={config} />} 
+        />
+        
+        {/* Redirect unknown routes to home */}
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </HashRouter>
