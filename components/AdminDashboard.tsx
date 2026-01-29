@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+
+import React, {A useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { RestaurantConfig, Category, Dish, Order, Offer, Language, WorkingHours } from '../types';
 import { DEFAULT_CONFIG, TRANSLATIONS } from '../constants';
@@ -17,7 +18,7 @@ import {
   Settings, Utensils, Image as ImageIcon, Plus, Edit2, Trash2,
   Save, X, Wand2, LogOut, Loader2, ClipboardList, RefreshCcw, AlertTriangle, ArrowRight, Bell,
   BarChart3, TrendingUp, DollarSign, Calendar, Smartphone, Facebook, Instagram, Zap,
-  Eye, EyeOff, Languages, ShoppingBag, Target, ChevronDown, Clock, Printer, Bike, MapPin, Phone
+  Eye, EyeOff, Languages, ShoppingBag, Target, ChevronDown, Clock, Printer, Bike, MapPin, Phone, Grid, Layout
 } from 'lucide-react';
 
 interface AdminDashboardProps {
@@ -58,6 +59,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ config: initialConfig, 
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const previousOrderCountRef = useRef<number>(0);
+  const colorInputRef = useRef<HTMLInputElement>(null);
 
   const [settingsForm, setSettingsForm] = useState(initialConfig);
   
@@ -629,13 +631,13 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ config: initialConfig, 
                 <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-lg shadow-xl border border-gray-100 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2">
                     <button 
                         onClick={() => selectLanguage('ar')}
-                        className={`w-full text-right px-4 py-2 text-xs flex items-center gap-2 hover:bg-gray-50 ${language === 'ar' ? 'font-bold text-black bg-primary/20' : 'text-gray-600'}`}
+                        className={`w-full text-right px-4 py-2 text-xs flex items-center gap-2 hover:bg-gray-50 ${language === 'ar' ? 'font-bold text-black bg-amber-100' : 'text-gray-600'}`}
                     >
                         <span>🇸🇦</span> العربية
                     </button>
                     <button 
                         onClick={() => selectLanguage('fr')}
-                        className={`w-full text-right px-4 py-2 text-xs flex items-center gap-2 hover:bg-gray-50 ${language === 'fr' ? 'font-bold text-black bg-primary/20' : 'text-gray-600'}`}
+                        className={`w-full text-right px-4 py-2 text-xs flex items-center gap-2 hover:bg-gray-50 ${language === 'fr' ? 'font-bold text-black bg-amber-100' : 'text-gray-600'}`}
                     >
                         <span>🇫🇷</span> Français
                     </button>
@@ -714,7 +716,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ config: initialConfig, 
 
         <div className="p-4 md:p-8 max-w-6xl mx-auto">
           
-          {/* ... (Previous Tabs Content: Analytics, Orders) ... */}
+          {/* Analytics, Orders... */}
           {activeTab === 'analytics' && (
              <div className="animate-in fade-in space-y-6">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -723,7 +725,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ config: initialConfig, 
                         {t.analytics}
                     </h2>
                     
-                    {/* Date Range Controls */}
                     <div className="flex bg-white rounded-lg p-1 border border-gray-200 shadow-sm w-full md:w-auto overflow-x-auto no-scrollbar">
                         <button onClick={() => setAnalyticsRange('today')} className={`px-4 py-1.5 rounded-md text-sm font-bold transition-all whitespace-nowrap ${analyticsRange === 'today' ? 'bg-black text-white shadow' : 'text-gray-500 hover:text-gray-900'}`}>{t.today}</button>
                         <button onClick={() => setAnalyticsRange('week')} className={`px-4 py-1.5 rounded-md text-sm font-bold transition-all whitespace-nowrap ${analyticsRange === 'week' ? 'bg-black text-white shadow' : 'text-gray-500 hover:text-gray-900'}`}>{t.week}</button>
@@ -743,7 +744,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ config: initialConfig, 
                     </div>
                 )}
 
-                {/* Stat Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4 hover:shadow-md transition-all">
                         <div className="w-14 h-14 rounded-full bg-green-50 text-green-600 flex items-center justify-center">
@@ -777,7 +777,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ config: initialConfig, 
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    {/* Best Sellers */}
                     <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                         <h3 className="font-bold text-lg mb-6 flex items-center gap-2">
                             <TrendingUp className="text-primary" /> {t.bestSellers}
@@ -804,7 +803,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ config: initialConfig, 
                         )}
                     </div>
                     
-                    {/* Placeholder for future charts or more stats */}
                     <div className="bg-gradient-to-br from-black to-gray-800 p-6 rounded-2xl shadow-sm border border-gray-700 text-white flex flex-col justify-center items-center text-center">
                         <BarChart3 size={48} className="text-primary mb-4" />
                         <h3 className="font-bold text-xl">مزيد من التحليلات قريباً</h3>
@@ -869,17 +867,14 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ config: initialConfig, 
                                         </div>
                                         <p className="text-sm text-gray-500 font-bold">{order.customer_name}</p>
                                         
-                                        {/* Display Address if Delivery */}
                                         {order.type === 'delivery' && (
                                             <div className="mt-2 text-xs bg-blue-50 p-2 rounded border border-blue-100 text-gray-700">
                                                 <div className="flex items-center gap-1 mb-1"><Phone size={12}/> {order.phone}</div>
                                                 <div className="flex items-start gap-1"><MapPin size={12} className="shrink-0 mt-0.5"/> {order.address}</div>
                                             </div>
                                         )}
-                                        {/* Display Code if Dine-in */}
                                         {order.type === 'dine_in' && order.verification_code && (
                                             <div className="mt-2 inline-flex items-center gap-1.5 text-xs bg-gray-100 px-2 py-1 rounded border border-gray-200 font-bold text-gray-700">
-                                                {/* Verification code display logic kept for existing orders but no new codes will be generated */}
                                                 كود: {order.verification_code}
                                             </div>
                                         )}
@@ -928,18 +923,34 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ config: initialConfig, 
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8 animate-in fade-in">
               <h2 className="text-2xl font-bold mb-6 flex items-center gap-2"><Settings className="text-primary" /> {t.restaurantSettings}</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                 <div className="md:col-span-2 bg-gray-50 p-4 rounded-xl border border-gray-200 flex justify-between items-center mb-4">
-                    <div className="flex items-center gap-3">
-                        <div className="p-2 bg-white rounded-lg border border-gray-200 text-gray-700"><Smartphone size={20} /></div>
-                        <div><h3 className="font-bold text-gray-800">{t.orderingPhone}</h3><p className="text-xs text-gray-500 mt-0.5">{t.orderingPhoneDesc}</p></div>
+                {/* Ordering Toggles */}
+                 <div className="md:col-span-2 space-y-4">
+                    <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 flex justify-between items-center">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 bg-white rounded-lg border border-gray-200 text-gray-700"><Smartphone size={20} /></div>
+                            <div><h3 className="font-bold text-gray-800">{t.orderingPhone}</h3><p className="text-xs text-gray-500 mt-0.5">{t.orderingPhoneDesc}</p></div>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" checked={settingsForm.isOrderingEnabled !== false} onChange={e => handleSettingsChange('isOrderingEnabled', e.target.checked)} className="sr-only peer" />
+                            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
+                            <span className={`text-sm font-medium text-gray-900 ${language === 'ar' ? 'mr-3' : 'ml-3'}`}>{settingsForm.isOrderingEnabled !== false ? t.active : t.inactive}</span>
+                        </label>
                     </div>
-                    <label className="relative inline-flex items-center cursor-pointer">
-                        <input type="checkbox" checked={settingsForm.isOrderingEnabled !== false} onChange={e => handleSettingsChange('isOrderingEnabled', e.target.checked)} className="sr-only peer" />
-                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
-                        <span className={`text-sm font-medium text-gray-900 ${language === 'ar' ? 'mr-3' : 'ml-3'}`}>{settingsForm.isOrderingEnabled !== false ? t.active : t.inactive}</span>
-                    </label>
+
+                    <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 flex justify-between items-center">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 bg-white rounded-lg border border-gray-200 text-gray-700"><Bike size={20} /></div>
+                            <div><h3 className="font-bold text-gray-800">{t.deliveryService}</h3><p className="text-xs text-gray-500 mt-0.5">{t.deliveryServiceDesc}</p></div>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" checked={settingsForm.isDeliveryEnabled !== false} onChange={e => handleSettingsChange('isDeliveryEnabled', e.target.checked)} className="sr-only peer" />
+                            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
+                            <span className={`text-sm font-medium text-gray-900 ${language === 'ar' ? 'mr-3' : 'ml-3'}`}>{settingsForm.isDeliveryEnabled !== false ? t.active : t.inactive}</span>
+                        </label>
+                    </div>
                 </div>
-                <div><label className="block text-sm font-medium text-gray-700 mb-1">{t.restaurantName}</label><input type="text" value={settingsForm.name} onChange={e => handleSettingsChange('name', e.target.value)} className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary/20 outline-none" /></div>
+
+                <div><label className="block text-sm font-medium text-gray-700 mb-1">{t.restaurantName}</label><input type="text" value={settingsForm.name} onChange={e => handleSettingsChange('name', e.target.value)} className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary/20 outline-none" /></div>
                  <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">{t.restaurantLogo}</label>
                   <div className="flex gap-4 items-center">
@@ -950,7 +961,31 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ config: initialConfig, 
                     </div>
                   </div>
                 </div>
-                <div className="md:col-span-2"><label className="block text-sm font-medium text-gray-700 mb-1">{t.restaurantDesc}</label><textarea value={settingsForm.description} onChange={e => handleSettingsChange('description', e.target.value)} className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary/20 outline-none h-24" /></div>
+
+                {/* خيار اختيار اللون الأساسي للهوية البصرية */}
+                <div className="md:col-span-2 mt-4">
+                  <label className="block text-sm text-gray-700 mb-2 font-medium text-right">اللون الأساسي للهوية البصرية</label>
+                  <div 
+                    onClick={() => colorInputRef.current?.click()}
+                    className="color-picker-input-container shadow-sm hover:bg-gray-50"
+                  >
+                    <span className="font-mono text-gray-400 text-sm uppercase">{settingsForm.primaryColor}</span>
+                    <div 
+                      className="w-8 h-8 rounded-lg shadow-sm border border-gray-100" 
+                      style={{ backgroundColor: settingsForm.primaryColor }}
+                    />
+                    <input 
+                      ref={colorInputRef}
+                      type="color" 
+                      value={settingsForm.primaryColor} 
+                      onChange={e => handleSettingsChange('primaryColor', e.target.value)}
+                      className="absolute opacity-0 pointer-events-none"
+                    />
+                  </div>
+                  <p className="text-[10px] text-gray-400 mt-2 text-right">هذا اللون يطبق على صفحة منيو الزبون فقط (الاسم، الأسعار، الأزرار).</p>
+                </div>
+
+                <div className="md:col-span-2 mt-4"><label className="block text-sm font-medium text-gray-700 mb-1">{t.restaurantDesc}</label><textarea value={settingsForm.description} onChange={e => handleSettingsChange('description', e.target.value)} className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary/20 outline-none h-24" /></div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">{t.coverImage}</label>
                    <div className="flex gap-4 items-center">
@@ -961,10 +996,43 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ config: initialConfig, 
                         </div>
                     </div>
                 </div>
-                <div><label className="block text-sm font-medium text-gray-700 mb-1">{t.currency}</label><input type="text" value={settingsForm.currency} onChange={e => handleSettingsChange('currency', e.target.value)} className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary/20 outline-none" /></div>
+                <div><label className="block text-sm font-medium text-gray-700 mb-1">{t.currency}</label><input type="text" value={settingsForm.currency} onChange={e => handleSettingsChange('currency', e.target.value)} className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary/20 outline-none" /></div>
+              </div>
+
+              {/* Category Display Selection */}
+              <div className="mb-10">
+                  <label className="block text-sm font-bold text-gray-700 mb-4 text-right">{t.chooseCategoryStyle}</label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {/* Circular Option */}
+                      <div 
+                        onClick={() => handleSettingsChange('categoryLayoutStyle', 'circular')}
+                        className={`cursor-pointer rounded-2xl border-2 p-4 transition-all flex items-center justify-between ${settingsForm.categoryLayoutStyle === 'circular' ? 'border-primary bg-primary/5 ring-1 ring-primary' : 'border-gray-100 bg-gray-50 hover:bg-white hover:border-gray-200'}`}
+                      >
+                          <div className="flex items-center gap-3">
+                             <div className="w-10 h-10 bg-white rounded-full border border-gray-100 flex items-center justify-center text-gray-400 group-hover:scale-110 transition-transform">
+                                <Grid size={20} />
+                             </div>
+                             <span className="font-bold text-sm text-gray-700">{t.styleCircular}</span>
+                          </div>
+                          {settingsForm.categoryLayoutStyle === 'circular' && <div className="w-4 h-4 rounded-full bg-primary flex items-center justify-center"><div className="w-1.5 h-1.5 rounded-full bg-black"></div></div>}
+                      </div>
+
+                      {/* Pills Option */}
+                      <div 
+                        onClick={() => handleSettingsChange('categoryLayoutStyle', 'pills')}
+                        className={`cursor-pointer rounded-2xl border-2 p-4 transition-all flex items-center justify-between ${settingsForm.categoryLayoutStyle === 'pills' || !settingsForm.categoryLayoutStyle ? 'border-primary bg-primary/5 ring-1 ring-primary' : 'border-gray-100 bg-gray-50 hover:bg-white hover:border-gray-200'}`}
+                      >
+                          <div className="flex items-center gap-3">
+                             <div className="w-10 h-10 bg-white rounded-full border border-gray-100 flex items-center justify-center text-gray-400">
+                                <Layout size={20} />
+                             </div>
+                             <span className="font-bold text-sm text-gray-700">{t.stylePills}</span>
+                          </div>
+                          {(settingsForm.categoryLayoutStyle === 'pills' || !settingsForm.categoryLayoutStyle) && <div className="w-4 h-4 rounded-full bg-primary flex items-center justify-center"><div className="w-1.5 h-1.5 rounded-full bg-black"></div></div>}
+                      </div>
+                  </div>
               </div>
               
-              {/* Working Hours Section */}
               <h3 className="font-bold text-lg mb-4 text-gray-800 flex items-center gap-2"><Clock size={20} /> {t.workingHours}</h3>
               <div className="bg-gray-50 rounded-xl p-6 border border-gray-200 mb-8 space-y-4">
                   {daysOfWeek.map((day) => (
@@ -991,14 +1059,14 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ config: initialConfig, 
                                     type="time" 
                                     value={settingsForm.workingHours[day].start} 
                                     onChange={e => handleWorkingHoursChange(day, 'start', e.target.value)}
-                                    className="flex-1 border rounded-lg px-3 py-1.5 text-sm bg-white focus:ring-2 focus:ring-primary/20 outline-none" 
+                                    className="flex-1 border border-gray-200 rounded-lg px-3 py-1.5 text-sm bg-white focus:ring-2 focus:ring-primary/20 outline-none" 
                                   />
                                   <span className="text-gray-400">-</span>
                                   <input 
                                     type="time" 
                                     value={settingsForm.workingHours[day].end} 
                                     onChange={e => handleWorkingHoursChange(day, 'end', e.target.value)}
-                                    className="flex-1 border rounded-lg px-3 py-1.5 text-sm bg-white focus:ring-2 focus:ring-primary/20 outline-none" 
+                                    className="flex-1 border border-gray-200 rounded-lg px-3 py-1.5 text-sm bg-white focus:ring-2 focus:ring-primary/20 outline-none" 
                                   />
                               </div>
                           ) : (
@@ -1012,11 +1080,11 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ config: initialConfig, 
 
               <h3 className="font-bold text-lg mb-4 text-gray-800">{t.socialLinks}</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                 <div><label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1"><Smartphone size={16} /> WhatsApp</label><input type="text" value={settingsForm.socials.whatsapp || ''} onChange={e => handleSocialChange('whatsapp', e.target.value)} className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary/20 outline-none" dir="ltr" /></div>
-                <div><label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1"><Instagram size={16} /> Instagram (User)</label><input type="text" value={settingsForm.socials.instagram || ''} onChange={e => handleSocialChange('instagram', e.target.value)} className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary/20 outline-none" dir="ltr" /></div>
-                <div><label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1"><Facebook size={16} /> Facebook (User/ID)</label><input type="text" value={settingsForm.socials.facebook || ''} onChange={e => handleSocialChange('facebook', e.target.value)} className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary/20 outline-none" dir="ltr" placeholder="ex: restaurant.page" /></div>
-                <div><label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1">TikTok (User)</label><input type="text" value={settingsForm.socials.tiktok || ''} onChange={e => handleSocialChange('tiktok', e.target.value)} className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary/20 outline-none" dir="ltr" placeholder="@user" /></div>
-                <div className="md:col-span-2"><label className="block text-sm font-medium text-gray-700 mb-1">Google Maps (URL)</label><input type="text" value={settingsForm.socials.googleMaps || ''} onChange={e => handleSocialChange('googleMaps', e.target.value)} className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary/20 outline-none" dir="ltr" /></div>
+                 <div><label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1"><Smartphone size={16} /> WhatsApp</label><input type="text" value={settingsForm.socials.whatsapp || ''} onChange={e => handleSocialChange('whatsapp', e.target.value)} className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary/20 outline-none" dir="ltr" /></div>
+                <div><label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1"><Instagram size={16} /> Instagram (User)</label><input type="text" value={settingsForm.socials.instagram || ''} onChange={e => handleSocialChange('instagram', e.target.value)} className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary/20 outline-none" dir="ltr" /></div>
+                <div><label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1"><Facebook size={16} /> Facebook (User/ID)</label><input type="text" value={settingsForm.socials.facebook || ''} onChange={e => handleSocialChange('facebook', e.target.value)} className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary/20 outline-none" dir="ltr" placeholder="ex: restaurant.page" /></div>
+                <div><label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1">TikTok (User)</label><input type="text" value={settingsForm.socials.tiktok || ''} onChange={e => handleSocialChange('tiktok', e.target.value)} className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary/20 outline-none" dir="ltr" placeholder="@user" /></div>
+                <div className="md:col-span-2"><label className="block text-sm font-medium text-gray-700 mb-1">Google Maps (URL)</label><input type="text" value={settingsForm.socials.googleMaps || ''} onChange={e => handleSocialChange('googleMaps', e.target.value)} className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary/20 outline-none" dir="ltr" /></div>
               </div>
               <button onClick={saveSettings} disabled={isSaving} className="bg-primary text-black px-8 py-3 rounded-xl font-bold hover:bg-yellow-400 transition-colors shadow-lg shadow-primary/30 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
                 {isSaving ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
@@ -1025,7 +1093,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ config: initialConfig, 
             </div>
           )}
           
-          {/* ... (Menu Tab remains unchanged) ... */}
           {activeTab === 'menu' && (
             <div className="animate-in fade-in">
               <div className="flex justify-between items-center mb-6">
@@ -1033,7 +1100,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ config: initialConfig, 
                 <button onClick={() => setEditingCategory({ id: Date.now().toString(), name: '', image: '', isAvailable: true })} className="bg-gray-800 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-700 flex items-center gap-2"><Plus size={16} /> {t.newCategory}</button>
               </div>
 
-               {/* OFFERS */}
                <div className="mb-10">
                    <div className="flex justify-between items-center mb-4">
                         <h3 className="text-lg font-bold flex items-center gap-2 text-gray-800"><Zap className="text-yellow-500 fill-yellow-500" size={20} /> {t.homeOffers}</h3>
@@ -1046,7 +1112,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ config: initialConfig, 
                                     <div className="h-32 w-full bg-gray-100 relative">
                                         <img src={offer.image} className="w-full h-full object-cover grayscale-0 transition-all group-hover:grayscale-0" alt="" />
                                         <div className="absolute top-2 left-2 bg-black/70 text-primary px-2 py-0.5 rounded text-xs font-bold">{offer.price} {config.currency}</div>
-                                        {/* Show Original Price if exists */}
                                         {offer.originalPrice && offer.originalPrice > offer.price && (
                                             <div className="absolute top-2 right-2 bg-red-600 text-white px-2 py-0.5 rounded text-xs font-bold line-through">{offer.originalPrice} {config.currency}</div>
                                         )}
@@ -1079,7 +1144,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ config: initialConfig, 
 
               <div className="border-t border-gray-100 my-8"></div>
 
-              {/* Categories */}
               <div className="space-y-8">
                 {config.categories.length === 0 ? (
                     <div className="text-center py-10 bg-white border rounded-xl"><p className="text-gray-500">لا توجد أقسام حتى الآن. أضف قسماً لتبدأ بإضافة الأطباق.</p></div>
@@ -1204,7 +1268,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ config: initialConfig, 
       {/* Category Modal */}
       {editingCategory && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95">
+            <div className="bg-white rounded-xl shadow-2xl w-full max-md overflow-hidden animate-in zoom-in-95">
                 <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50"><h3 className="font-bold">{t.addEditCategory}</h3><button onClick={() => setEditingCategory(null)}><X size={20} /></button></div>
                 <div className="p-6 space-y-4">
                     <div><label className="block text-sm font-medium mb-1">{t.catName}</label><input className="w-full border rounded-lg px-3 py-2 outline-none focus:border-primary" value={editingCategory.name} onChange={e => setEditingCategory({...editingCategory, name: e.target.value})} /></div>

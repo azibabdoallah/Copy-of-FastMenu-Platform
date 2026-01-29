@@ -1,3 +1,4 @@
+
 import { RestaurantConfig, Dish, Category } from '../types';
 import { DEFAULT_CONFIG } from '../constants';
 import { supabase } from './supabase';
@@ -31,7 +32,6 @@ const getLocalConfig = (): RestaurantConfig => {
     try {
         const local = localStorage.getItem(LOCAL_STORAGE_KEY);
         const parsed = local ? JSON.parse(local) : DEFAULT_CONFIG;
-        // Merge with DEFAULT_CONFIG to ensure structure exists
         return { 
             ...DEFAULT_CONFIG, 
             ...parsed, 
@@ -54,17 +54,27 @@ const setLocalConfig = (config: RestaurantConfig) => {
 
 // --- 1. PROFILES (Settings) ---
 
-export const getRestaurantConfig = async (targetUserId?: string): Promise<RestaurantConfig> => {
-  // Always start with local config
+export const getRestaurantConfig = async (identifier?: string, isName: boolean = false): Promise<RestaurantConfig> => {
   let config: RestaurantConfig = getLocalConfig();
   
   try {
-    const uid = await getUserId(targetUserId);
+    let uid: string | null = null;
+
+    if (identifier && isName) {
+        // Fetch UID by restaurant_name
+        const { data: nameData, error: nameError } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('restaurant_name', identifier)
+            .maybeSingle();
+        
+        if (nameData) uid = nameData.id;
+    } else {
+        uid = await getUserId(identifier);
+    }
     
-    // If no user and no target, just return local
     if (!uid) return config;
 
-    // A. Fetch Profile
     const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('restaurant_name, description, logo_url, cover_url, settings')
@@ -84,15 +94,14 @@ export const getRestaurantConfig = async (targetUserId?: string): Promise<Restau
             currency: settings.currency ?? config.currency,
             primaryColor: settings.primaryColor ?? config.primaryColor,
             isOrderingEnabled: settings.isOrderingEnabled ?? config.isOrderingEnabled ?? true,
+            isDeliveryEnabled: settings.isDeliveryEnabled ?? config.isDeliveryEnabled ?? true,
             socials: { ...config.socials, ...(settings.socials || {}) },
             offers: settings.offers ?? config.offers,
             languages: settings.languages ?? config.languages,
-            // Merge working hours, fallback to default if missing in DB
             workingHours: settings.workingHours ?? config.workingHours
         };
     }
 
-    // B. Fetch Categories
     const { data: categoriesData } = await supabase
         .from('categories')
         .select('*')
@@ -104,12 +113,10 @@ export const getRestaurantConfig = async (targetUserId?: string): Promise<Restau
             id: String(c.id),
             name: c.name,
             image: c.image,
-            // Default to true if column is missing or data is null
             isAvailable: c.is_available !== false
         }));
     }
 
-    // C. Fetch Items
     const { data: itemsData } = await supabase
         .from('items')
         .select('*')
@@ -130,7 +137,6 @@ export const getRestaurantConfig = async (targetUserId?: string): Promise<Restau
         }));
     }
 
-    // Update local storage with fresh data
     setLocalConfig(config);
     return config;
 
@@ -141,12 +147,10 @@ export const getRestaurantConfig = async (targetUserId?: string): Promise<Restau
 };
 
 export const saveRestaurantConfig = async (config: RestaurantConfig): Promise<boolean> => {
-  setLocalConfig(config); // Always save locally first
-
+  setLocalConfig(config);
   try {
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return true; // Treat as success (local save only)
-
+    if (!user) return true;
     const profileData = {
         id: user.id,
         restaurant_name: config.name,
@@ -160,59 +164,43 @@ export const saveRestaurantConfig = async (config: RestaurantConfig): Promise<bo
             offers: config.offers,
             languages: config.languages,
             isOrderingEnabled: config.isOrderingEnabled,
-            workingHours: config.workingHours // Save working hours
+            isDeliveryEnabled: config.isDeliveryEnabled,
+            workingHours: config.workingHours
         }
     };
-
     const { error } = await supabase.from('profiles').upsert(profileData);
     if (error) throw error;
-    
     return true;
   } catch (e) {
-    console.warn("Cloud save failed, saved locally:", e);
-    return true; // Return true so UI doesn't rollback
+    return true;
   }
 };
-
-// --- 2. CATEGORIES Management ---
 
 export const addCategoryToSupabase = async (category: Omit<Category, 'id'>): Promise<Category | null> => {
     const tempId = `local_${Date.now()}`;
     const newCat: Category = { ...category, id: tempId };
-    
-    // Update local immediately
     const config = getLocalConfig();
     config.categories.push(newCat);
     setLocalConfig(config);
-
     try {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return newCat;
-
-        // Note: Removed 'is_available' because the DB column might be missing
         const { data, error } = await supabase.from('categories').insert({
             name: category.name,
             image: category.image || null,
-            // is_available: category.isAvailable, 
             user_id: user.id
         }).select().single();
-
         if (error) throw error;
-
         const realCat = {
             id: String(data.id),
             name: data.name,
             image: data.image,
-            isAvailable: category.isAvailable // Keep local value
+            isAvailable: category.isAvailable
         };
-        
-        // Swap temp ID for real ID locally
         config.categories = config.categories.map(c => c.id === tempId ? realCat : c);
         setLocalConfig(config);
-
         return realCat;
     } catch (e) {
-        console.warn("Cloud add category failed, using local:", e);
         return newCat;
     }
 };
@@ -221,28 +209,16 @@ export const updateCategoryInSupabase = async (category: Category): Promise<bool
     const config = getLocalConfig();
     config.categories = config.categories.map(c => c.id === category.id ? category : c);
     setLocalConfig(config);
-
     try {
         const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return true;
-
-        // Skip cloud update if it's a local-only item
-        if (category.id.startsWith('local_')) return true;
-
-        // Note: Removed 'is_available' because the DB column might be missing
+        if (!user || category.id.startsWith('local_')) return true;
         const { error } = await supabase.from('categories')
-            .update({ 
-                name: category.name, 
-                image: category.image || null,
-                // is_available: category.isAvailable 
-            })
+            .update({ name: category.name, image: category.image || null })
             .eq('id', category.id)
             .eq('user_id', user.id); 
-
         if (error) throw error;
         return true;
     } catch (e) {
-        console.warn("Cloud update category failed, using local:", e);
         return true;
     }
 };
@@ -252,23 +228,13 @@ export const deleteCategoryFromSupabase = async (categoryId: string): Promise<bo
     config.categories = config.categories.filter(c => c.id !== categoryId);
     config.dishes = config.dishes.filter(d => d.categoryId !== categoryId);
     setLocalConfig(config);
-
     try {
          const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return true;
-
-        if (categoryId.startsWith('local_')) return true;
-
-        const { error } = await supabase
-            .from('categories')
-            .delete()
-            .eq('id', categoryId)
-            .eq('user_id', user.id);
-
+        if (!user || categoryId.startsWith('local_')) return true;
+        const { error } = await supabase.from('categories').delete().eq('id', categoryId).eq('user_id', user.id);
         if (error) throw error;
         return true;
     } catch (e) {
-        console.warn("Cloud delete category failed, using local:", e);
         return true;
     }
 };
@@ -276,16 +242,8 @@ export const deleteCategoryFromSupabase = async (categoryId: string): Promise<bo
 export const deleteDishesByCategory = async (categoryId: string): Promise<boolean> => {
     try {
         const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return true;
-
-        if (categoryId.startsWith('local_')) return true;
-
-        const { error } = await supabase
-            .from('items')
-            .delete()
-            .eq('category_id', categoryId)
-            .eq('user_id', user.id);
-            
+        if (!user || categoryId.startsWith('local_')) return true;
+        const { error } = await supabase.from('items').delete().eq('category_id', categoryId).eq('user_id', user.id);
         if (error) throw error;
         return true;
     } catch (e) {
@@ -293,21 +251,15 @@ export const deleteDishesByCategory = async (categoryId: string): Promise<boolea
     }
 };
 
-
-// --- 3. ITEMS (Dishes) Management ---
-
 export const addDishToSupabase = async (dish: Dish): Promise<Dish | null> => {
   const tempId = dish.id && !dish.id.startsWith('local_') ? dish.id : `local_${Date.now()}`;
   const newDish = { ...dish, id: tempId };
-
   const config = getLocalConfig();
   config.dishes.push(newDish);
   setLocalConfig(config);
-
   try {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return newDish;
-
     const { data, error } = await supabase.from('items').insert({
       name: dish.name,
       description: dish.description,
@@ -319,16 +271,12 @@ export const addDishToSupabase = async (dish: Dish): Promise<Dish | null> => {
       calories: dish.calories,
       user_id: user.id
     }).select().single();
-
     if (error) throw error;
-    
     const realDish = { ...dish, id: String(data.id) };
     config.dishes = config.dishes.map(d => d.id === tempId ? realDish : d);
     setLocalConfig(config);
-
     return realDish;
   } catch (error) {
-    console.warn("Cloud add dish failed, using local:", error);
     return newDish;
   }
 };
@@ -337,16 +285,10 @@ export const updateDishInSupabase = async (dish: Dish): Promise<boolean> => {
   const config = getLocalConfig();
   config.dishes = config.dishes.map(d => d.id === dish.id ? dish : d);
   setLocalConfig(config);
-
   try {
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return true;
-    
-    if (dish.id.startsWith('local_')) return true;
-
-    const { error } = await supabase
-      .from('items')
-      .update({
+    if (!user || dish.id.startsWith('local_')) return true;
+    const { error } = await supabase.from('items').update({
         name: dish.name,
         description: dish.description,
         price: dish.price,
@@ -355,14 +297,10 @@ export const updateDishInSupabase = async (dish: Dish): Promise<boolean> => {
         prep_time: dish.prepTime,
         is_available: dish.isAvailable,
         calories: dish.calories
-      })
-      .eq('id', dish.id)
-      .eq('user_id', user.id);
-
+      }).eq('id', dish.id).eq('user_id', user.id);
     if (error) throw error;
     return true;
   } catch (error) {
-    console.warn("Cloud update dish failed, using local:", error);
     return true;
   }
 };
@@ -371,50 +309,28 @@ export const deleteDishFromSupabase = async (dishId: string): Promise<boolean> =
   const config = getLocalConfig();
   config.dishes = config.dishes.filter(d => d.id !== dishId);
   setLocalConfig(config);
-
   try {
      const { data: { user } } = await supabase.auth.getUser();
-     if (!user) return true;
-
-    if (dishId.startsWith('local_')) return true;
-
-    const { error } = await supabase
-        .from('items')
-        .delete()
-        .eq('id', dishId)
-        .eq('user_id', user.id);
-
+     if (!user || dishId.startsWith('local_')) return true;
+    const { error } = await supabase.from('items').delete().eq('id', dishId).eq('user_id', user.id);
     if (error) throw error;
     return true;
   } catch (error) {
-    console.warn("Cloud delete dish failed, using local:", error);
     return true;
   }
 };
 
-// --- IMAGE UPLOAD ---
 export const uploadImage = async (file: File): Promise<string | null> => {
   try {
     const fileExt = file.name.split('.').pop();
     const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
     const filePath = `${fileName}`;
-
-    const { error: uploadError, data: uploadData } = await supabase.storage
-      .from('menu_photos')
-      .upload(filePath, file);
-
+    const { error: uploadError, data: uploadData } = await supabase.storage.from('menu_photos').upload(filePath, file);
     if (uploadError) throw uploadError;
-
-    const { data } = supabase.storage
-      .from('menu_photos')
-      .getPublicUrl(uploadData.path || filePath);
-    
+    const { data } = supabase.storage.from('menu_photos').getPublicUrl(uploadData.path || filePath);
     if (data.publicUrl) return data.publicUrl;
-    
     throw new Error("No public URL returned");
-
   } catch (error) {
-    console.warn("Image upload failed (offline), returning object URL", error);
     return URL.createObjectURL(file);
   }
 };

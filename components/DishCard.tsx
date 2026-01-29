@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Dish } from '../types';
 
@@ -16,12 +17,12 @@ const DishCard: React.FC<DishCardProps> = ({ dish, currency, onClick }) => {
       {/* Content Section (Right Side in RTL) */}
       <div className="flex-1 flex flex-col justify-between items-start text-right min-w-0">
         <div className="w-full">
-          <h3 className="font-bold text-slate-900 text-base mb-1 group-hover:text-primary transition-colors">{dish.name}</h3>
+          <h3 className="font-bold text-slate-900 text-base mb-1 group-hover:text-brand transition-colors">{dish.name}</h3>
           <p className="text-gray-400 text-xs line-clamp-2 leading-relaxed mb-3 pl-2">{dish.description}</p>
         </div>
         
         <div className="flex items-center w-full mt-auto">
-          <span className="text-[#ca8a04] font-bold text-base">{dish.price} {currency}</span>
+          <span className="text-brand font-bold text-base">{dish.price} {currency}</span>
         </div>
       </div>
 

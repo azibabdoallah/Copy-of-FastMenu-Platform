@@ -62,6 +62,7 @@ export interface RestaurantConfig {
   description: string;
   currency: string;
   primaryColor: string;
+  categoryLayoutStyle?: 'pills' | 'circular'; // New: layout style for categories
   socials: SocialLinks;
   categories: Category[]; // Fetched from 'categories' table
   dishes: Dish[];         // Fetched from 'items' table
@@ -69,6 +70,7 @@ export interface RestaurantConfig {
   languages: Language[];
   workingHours: WorkingHours; // Added working hours
   isOrderingEnabled: boolean; // Controls if customers can place orders
+  isDeliveryEnabled: boolean; // New: Controls if delivery is available
 }
 
 export interface CartItem {
