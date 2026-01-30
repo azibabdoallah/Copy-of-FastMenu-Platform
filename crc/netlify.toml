@@ -1,0 +1,10 @@
+[build]
+  # هذا الأمر يخبر نيتليفاي كيف يحول الكود لموقع حقيقي
+  command = "npm run build"
+  # هذا المجلد الذي يحتوي على الموقع النهائي بعد التحويل
+  publish = "dist"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
