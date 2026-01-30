@@ -1,5 +1,5 @@
 
-import React, {A useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { RestaurantConfig, Category, Dish, Order, Offer, Language, WorkingHours } from '../types';
 import { DEFAULT_CONFIG, TRANSLATIONS } from '../constants';
