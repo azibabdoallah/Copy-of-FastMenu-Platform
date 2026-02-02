@@ -1,7 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
-import CustomerMenu from './components/CustomerMenu';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';import CustomerMenu from './components/CustomerMenu';
 import AdminDashboard from './components/AdminDashboard';
 import LandingPage from './components/LandingPage';
 import AuthPage from './components/AuthPage';
