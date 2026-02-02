@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';import CustomerMenu from './components/CustomerMenu';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';';import CustomerMenu from './components/CustomerMenu';
 import AdminDashboard from './components/AdminDashboard';
 import LandingPage from './components/LandingPage';
 import AuthPage from './components/AuthPage';
@@ -80,8 +80,7 @@ const App: React.FC = () => {
       setConfig(DEFAULT_CONFIG);
       applyCustomerBranding(DEFAULT_CONFIG.primaryColor);
       await supabase.auth.signOut();
-      window.location.hash = '/auth'; 
-  };
+window.location.href = '/auth';  };
 
   if (loading) {
     return (
@@ -95,20 +94,16 @@ const App: React.FC = () => {
   }
 
   return (
-    <HashRouter>
+    <Router>
       <Routes>
         <Route path="/" element={<PublicRoute><LandingPage /></PublicRoute>} />
         <Route path="/auth" element={<PublicRoute><AuthPage /></PublicRoute>} />
         <Route path="/select" element={<ProtectedRoute><SelectionPage /></ProtectedRoute>} />
-        <Route path="/admin" element={<ProtectedRoute><AdminDashboard config={config} onUpdate={handleUpdateConfig} onLogout={handleLogout}/></ProtectedRoute>} />
-        
-        <Route path="/menu" element={<CustomerMenu config={config} />} />
-        <Route path="/menu/:restaurantName" element={<CustomerMenu config={config} />} />
-        
+        <Route path="/admin" element={<ProtectedRoute><AdminDashboard config={config} onUpdate={handleUpdateConfig} onLogout={handleLogout}/></ProtectedRoute>} />   
+     <Route path="/:restaurantId" element={<CustomerMenu config={config} />} />   
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
-    </HashRouter>
-  );
+</Router>  );
 };
 
 export default App;
