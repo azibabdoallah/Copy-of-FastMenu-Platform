@@ -5,18 +5,18 @@ const defaultSchedule = { isOpen: true, start: "09:00", end: "23:00" };
 export const DEFAULT_CONFIG: RestaurantConfig = {
   name: "FASTMENU",
   description: "خدمة المنيو الالكتروني للمطاعم. اطلب، ادفع، واستمتع بسرعة البرق.",
-  logo: "https://via.placeholder.com/200/000000/fbbf24?text=FASTMENU", // Updated placeholder
+  logo: "https://via.placeholder.com/200", 
   coverImage: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=1000&auto=format&fit=crop",
   currency: "ر.س",
-  primaryColor: "#fbbf24", // Yellow
+  primaryColor: "#fbbf24", 
   languages: ['ar'],
-  isOrderingEnabled: true, // Default to true
+  isOrderingEnabled: true,
   socials: {
-    whatsapp: "966500000000",
-    instagram: "fastmenu",
-    facebook: "fastmenu",
-    tiktok: "fastmenu",
-    googleMaps: "https://maps.google.com",
+    whatsapp: "",
+    instagram: "",
+    facebook: "",
+    tiktok: "",
+    googleMaps: "",
   },
   workingHours: {
     saturday: { ...defaultSchedule },
@@ -25,91 +25,11 @@ export const DEFAULT_CONFIG: RestaurantConfig = {
     tuesday: { ...defaultSchedule },
     wednesday: { ...defaultSchedule },
     thursday: { ...defaultSchedule },
-    friday: { isOpen: true, start: "13:00", end: "23:00" }, // Example: Friday usually starts later
+    friday: { isOpen: true, start: "13:00", end: "23:00" },
   },
-  offers: [
-    {
-      id: 'o1',
-      title: 'وجبة التوفير العائلية',
-      description: 'كيلو مشاوي + مقبلات + مشروب غازي كبير',
-      price: 120,
-      originalPrice: 150,
-      image: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&q=80&w=1000',
-      active: true,
-    },
-    {
-      id: 'o2',
-      title: 'عرض 3 فاهيتا بسعر 2',
-      description: '3 سندوتشات فاهيتا دجاج متبلة',
-      price: 7000,
-      originalPrice: 10500,
-      image: 'https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?auto=format&fit=crop&q=80&w=1000',
-      active: true,
-    }
-  ],
-  categories: [
-    { id: 'c1', name: 'المشاوي', image: 'https://picsum.photos/100/100?random=1', isAvailable: true },
-    { id: 'c2', name: 'المقبلات', image: 'https://picsum.photos/100/100?random=2', isAvailable: true },
-    { id: 'c3', name: 'المشروبات', image: 'https://picsum.photos/100/100?random=3', isAvailable: true },
-    { id: 'c4', name: 'الحلويات', image: 'https://picsum.photos/100/100?random=4', isAvailable: true },
-  ],
-  dishes: [
-    {
-      id: 'd1',
-      categoryId: 'c1',
-      name: 'مشاوي مشكلة دمشقية',
-      description: 'تشكيلة مميزة من الكباب والشيش طاووق واللحم المشوي مع الخبز المحمر.',
-      price: 65,
-      image: 'https://picsum.photos/400/300?random=10',
-      prepTime: 25,
-      isAvailable: true,
-      calories: 850
-    },
-    {
-      id: 'd2',
-      categoryId: 'c1',
-      name: 'كباب حلبي',
-      description: 'كباب لحم ضأن طازج متبل بالبهارات الحلبية الخاصة.',
-      price: 55,
-      image: 'https://picsum.photos/400/300?random=11',
-      prepTime: 20,
-      isAvailable: true,
-      calories: 600
-    },
-    {
-      id: 'd3',
-      categoryId: 'c2',
-      name: 'حمص بيروتي',
-      description: 'حمص ناعم مع البقدونس والثوم وزيت الزيتون البكر.',
-      price: 18,
-      image: 'https://picsum.photos/400/300?random=12',
-      prepTime: 5,
-      isAvailable: true,
-      calories: 250
-    },
-    {
-      id: 'd4',
-      categoryId: 'c2',
-      name: 'تبولة',
-      description: 'سلطة البقدونس الطازج مع البرغل والطماطم والليمون.',
-      price: 20,
-      image: 'https://picsum.photos/400/300?random=13',
-      prepTime: 10,
-      isAvailable: true,
-      calories: 150
-    },
-    {
-      id: 'd5',
-      categoryId: 'c3',
-      name: 'عصير برتقال طازج',
-      description: 'عصير برتقال طبيعي 100% بدون إضافات.',
-      price: 15,
-      image: 'https://picsum.photos/400/300?random=14',
-      prepTime: 5,
-      isAvailable: true,
-      calories: 120
-    }
-  ]
+  offers: [],
+  categories: [],
+  dishes: []
 };
 
 export const TRANSLATIONS = {
@@ -144,8 +64,6 @@ export const TRANSLATIONS = {
     dineIn: "داخل المطعم",
     delivery: "توصيل",
     deliveryDetails: "بيانات التوصيل",
-    
-    // Days
     saturday: "السبت",
     sunday: "الأحد",
     monday: "الإثنين",
@@ -153,8 +71,6 @@ export const TRANSLATIONS = {
     wednesday: "الأربعاء",
     thursday: "الخميس",
     friday: "الجمعة",
-    
-    // Admin
     dashboard: "لوحة التحكم",
     manageMenu: "إدارة القائمة والطلبات",
     backToSelect: "العودة لصفحة الاختيار",
@@ -201,17 +117,13 @@ export const TRANSLATIONS = {
     available: "متاح",
     addDish: "إضافة طبق",
     hiddenSectionMsg: "هذا القسم مخفي ولا يظهر الأطباق بداخله للزبائن.",
-    
-    // QR Code
     qrCodes: "رموز الطاولات (QR)",
-    qrDesc: "قم بطباعة رموز QR ولصقها على الطاولات. يحتوي كل رمز على كود تحقق فريد.",
+    qrDesc: "قم بطباعة رموز QR ولصقها على الطاولات.",
     generateQr: "توليد الرموز",
     printQr: "طباعة",
     tableCount: "عدد الطاولات",
     scanToOrder: "امسح للطلب",
     verificationCode: "كود التحقق",
-    
-    // Analytics
     totalRevenue: "إجمالي المبيعات",
     totalOrders: "عدد الطلبات",
     averageOrder: "متوسط الطلب",
@@ -221,8 +133,6 @@ export const TRANSLATIONS = {
     week: "أسبوع",
     month: "شهر",
     custom: "مخصص",
-
-    // Modals
     addEditOffer: "إضافة/تعديل عرض",
     offerTitle: "عنوان العرض",
     newPrice: "السعر الجديد",
@@ -230,12 +140,10 @@ export const TRANSLATIONS = {
     offerImage: "صورة العرض",
     offerActive: "العرض مفعل ويظهر في القائمة",
     saveOffer: "حفظ العرض",
-    
     addEditCategory: "تعديل/إضافة قسم",
     catName: "اسم القسم",
     catImage: "صورة القسم",
     catActive: "القسم متاح (يظهر للزبائن)",
-    
     dishDetails: "تفاصيل الطبق",
     dishName: "اسم الطبق",
     selectCat: "اختر القسم",
@@ -249,144 +157,9 @@ export const TRANSLATIONS = {
     generating: "جاري التوليد...",
     dishActive: "الطبق متاح للطلب",
     cancelBtn: "إلغاء",
-    saveDish: "حفظ الطبق"
-  },
-  fr: {
-    // Menu
-    openNow: "Ouvert maintenant",
-    closedNow: "Fermé maintenant",
-    rateExp: "Notez l'expérience",
-    offers: "Offres Spéciales",
-    save: "Économiser",
-    unavailable: "Non disponible",
-    viewOrder: "Voir la commande",
-    cart: "Panier",
-    emptyCart: "Le panier est vide",
-    total: "Total",
-    namePlaceholder: "Votre nom",
-    tablePlaceholder: "Numéro de table",
-    phonePlaceholder: "Numéro de téléphone",
-    addressPlaceholder: "Adresse complète",
-    codePlaceholder: "Code de vérification (sous le QR)",
-    back: "Retour",
-    confirmOrder: "Confirmer la commande",
-    sending: "Envoi en cours...",
-    completeOrder: "Passer la commande",
-    orderSuccess: "Commande reçue avec succès!",
-    orderSuccessMsg: "Votre commande sera préparée et apportée à votre table bientôt.",
-    addToOrder: "Ajouter au panier",
-    orderingDisabled: "Commande désactivée",
-    soldOut: "Épuisé",
-    language: "Langue",
-    workingHours: "Heures d'ouverture",
-    dineIn: "Sur place",
-    delivery: "Livraison",
-    deliveryDetails: "Détails de livraison",
-    
-    // Days
-    saturday: "Samedi",
-    sunday: "Dimanche",
-    monday: "Lundi",
-    tuesday: "Mardi",
-    wednesday: "Mercredi",
-    thursday: "Jeudi",
-    friday: "Vendredi",
-    
-    // Admin
-    dashboard: "Tableau de bord",
-    manageMenu: "Gérer le menu et les commandes",
-    backToSelect: "Retour à la sélection",
-    orders: "Commandes",
-    analytics: "Analytiques",
-    menu: "Menu",
-    settings: "Paramètres",
-    logout: "Déconnexion",
-    welcomeTitle: "Bienvenue sur FASTMENU !",
-    welcomeMsg: "Veuillez compléter le profil du restaurant pour commencer à recevoir des commandes.",
-    receivedOrders: "Commandes reçues",
-    update: "Mettre à jour",
-    noOrders: "Aucune commande pour le moment",
-    table: "Table",
-    new: "Nouveau",
-    preparing: "Préparation",
-    completed: "Terminé",
-    startPrep: "Commencer",
-    complete: "Terminer",
-    cancel: "Annuler",
-    restaurantSettings: "Paramètres du restaurant",
-    orderingPhone: "Commandes via mobile",
-    orderingPhoneDesc: "Activer ou désactiver la commande depuis la page du menu",
-    active: "Activé",
-    inactive: "Désactivé",
-    closed: "Fermé",
-    restaurantName: "Nom du restaurant",
-    restaurantLogo: "Logo du restaurant",
-    restaurantDesc: "Description",
-    coverImage: "Image de couverture",
-    currency: "Devise",
-    socialLinks: "Réseaux sociaux",
-    saveChanges: "Enregistrer",
-    saving: "Enregistrement...",
-    menuManagement: "Gestion du menu",
-    newCategory: "Nouvelle catégorie",
-    homeOffers: "Offres d'accueil",
-    addOffer: "Ajouter offre",
-    noOffers: "Aucune offre pour le moment.",
-    edit: "Modifier",
-    hidden: "Masqué",
-    showSection: "Afficher section",
-    hideSection: "Masquer section",
-    available: "Disponible",
-    addDish: "Ajouter plat",
-    hiddenSectionMsg: "Cette section est masquée pour les clients.",
-    
-    // QR Code
-    qrCodes: "Codes QR",
-    qrDesc: "Imprimez les codes QR et collez-les sur les tables. Chaque code contient un code de vérification unique.",
-    generateQr: "Générer",
-    printQr: "Imprimer",
-    tableCount: "Nombre de tables",
-    scanToOrder: "Scanner pour commander",
-    verificationCode: "Code Verif.",
-
-    // Analytics
-    totalRevenue: "Revenu total",
-    totalOrders: "Total commandes",
-    averageOrder: "Panier moyen",
-    bestSellers: "Meilleures ventes",
-    timeRange: "Période",
-    today: "Aujourd'hui",
-    week: "Semaine",
-    month: "Mois",
-    custom: "Personnalisé",
-
-    // Modals
-    addEditOffer: "Ajouter/Modifier offre",
-    offerTitle: "Titre de l'offre",
-    newPrice: "Nouveau prix",
-    oldPrice: "Ancien prix",
-    offerImage: "Image de l'offre",
-    offerActive: "L'offre est active",
-    saveOffer: "Enregistrer l'offre",
-    
-    addEditCategory: "Ajouter/Modifier catégorie",
-    catName: "Nom de la catégorie",
-    catImage: "Image de la catégorie",
-    catActive: "Catégorie visible",
-    
-    dishDetails: "Détails du plat",
-    dishName: "Nom du plat",
-    selectCat: "Choisir catégorie",
-    price: "Prix",
-    prepTime: "Temps de prép. (min)",
-    calories: "Calories (optionnel)",
-    dishImage: "Image du plat",
-    changeImage: "Changer l'image",
-    clickUpload: "Cliquez pour uploader",
-    aiWrite: "IA (Gemini)",
-    generating: "Génération...",
-    dishActive: "Plat disponible",
-    cancelBtn: "Annuler",
-    saveDish: "Enregistrer le plat"
+    saveDish: "حفظ الطبق",
+    chooseCategoryStyle: "شكل عرض الأقسام",
+    styleCircular: "دوائر كلاسيكية",
+    stylePills: "أزرار عريضة"
   }
 };
