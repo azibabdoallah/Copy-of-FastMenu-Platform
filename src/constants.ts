@@ -27,8 +27,8 @@ export const DEFAULT_CONFIG: RestaurantConfig = {
     thursday: { ...defaultSchedule },
     friday: { isOpen: true, start: "13:00", end: "23:00" }, // Example: Friday usually starts later
   },
-  offers: [
-    {
+offers: [],
+  {
       id: 'o1',
       title: 'وجبة التوفير العائلية',
       description: 'كيلو مشاوي + مقبلات + مشروب غازي كبير',
@@ -47,13 +47,13 @@ export const DEFAULT_CONFIG: RestaurantConfig = {
       active: true,
     }
   ],
-  categories: [
+  categories: [],
     { id: 'c1', name: 'المشاوي', image: 'https://picsum.photos/100/100?random=1', isAvailable: true },
     { id: 'c2', name: 'المقبلات', image: 'https://picsum.photos/100/100?random=2', isAvailable: true },
     { id: 'c3', name: 'المشروبات', image: 'https://picsum.photos/100/100?random=3', isAvailable: true },
     { id: 'c4', name: 'الحلويات', image: 'https://picsum.photos/100/100?random=4', isAvailable: true },
   ],
-  dishes: [
+  dishes: [],
     {
       id: 'd1',
       categoryId: 'c1',
