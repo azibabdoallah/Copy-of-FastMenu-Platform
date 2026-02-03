@@ -4,7 +4,7 @@ import DishCard from './DishCard';
 import { submitOrder } from '../services/orderService';
 import { getRestaurantConfig } from '../services/storageService';
 import { supabase } from '../services/supabase';
-import { ShoppingBag, Plus, Minus, X, CheckCircle, LogOut, Loader2, ArrowRight, Facebook, Instagram, Flame, Star, Clock, Bike, Utensils, LayoutGrid } from 'lucide-react';
+import { ShoppingBag, Plus, Minus, X, CheckCircle, LogOut, Loader2, ArrowRight, Facebook, Instagram, Flame, Star, Clock, Bike, Utensils } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { TRANSLATIONS } from '../constants';
 
@@ -12,15 +12,9 @@ interface CustomerMenuProps {
   config: RestaurantConfig;
 }
 
-const WhatsAppIcon = () => (
-  <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor" className="text-white">
-    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/>
-  </svg>
-);
-
 const CustomerMenu: React.FC<CustomerMenuProps> = ({ config: initialConfig }) => {
   const navigate = useNavigate();
-  const { restaurantId } = useParams();
+  const { restaurantId } = useParams(); // سيأخذ القيمة "DIFL" من الرابط
   
   const [currentConfig, setCurrentConfig] = useState<RestaurantConfig>(initialConfig);
   const [activeCategory, setActiveCategory] = useState<string>('');
@@ -51,22 +45,34 @@ const CustomerMenu: React.FC<CustomerMenuProps> = ({ config: initialConfig }) =>
     supabase.auth.getSession().then(({ data: { session } }) => setIsOwner(!!session));
   }, []);
 
+  // --- دالة التحميل الذكية: تحويل الاسم (DIFL) إلى بيانات حقيقية ---
   useEffect(() => {
     const loadData = async () => {
         setIsLoading(true);
         try {
             if (restaurantId) {
-                const fetchedConfig = await getRestaurantConfig(restaurantId, true);
-                setCurrentConfig(fetchedConfig);
-                setMenuDishes(fetchedConfig.dishes);
-                const { data: profile } = await supabase.from('profiles').select('id').eq('restaurant_name', restaurantId).maybeSingle();
-                if (profile) setMenuOwnerId(profile.id);
+                // 1. نبحث عن الـ ID الحقيقي للمطعم باستخدام اسمه (DIFL)
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('id')
+                    .eq('restaurant_name', restaurantId)
+                    .maybeSingle();
+
+                if (profile) {
+                    setMenuOwnerId(profile.id);
+                    // 2. الآن نجلب الأطباق والإعدادات باستخدام الـ ID الصحيح
+                    const fetchedConfig = await getRestaurantConfig(profile.id);
+                    setCurrentConfig(fetchedConfig);
+                    setMenuDishes(fetchedConfig.dishes);
+                } else {
+                    console.error("المطعم غير موجود");
+                }
             } else {
                 setCurrentConfig(initialConfig);
                 setMenuDishes(initialConfig.dishes);
             }
         } catch (error) {
-            console.error("Error loading menu:", error);
+            console.error("خطأ في التحميل:", error);
         } finally {
             setIsLoading(false);
         }
@@ -119,7 +125,7 @@ const CustomerMenu: React.FC<CustomerMenuProps> = ({ config: initialConfig }) =>
       });
       setCart([]); setIsCheckingOut(false); setIsCartOpen(false); setOrderSuccess(true);
       setTimeout(() => setOrderSuccess(false), 3000);
-    } catch (err) { alert("خطأ في إرسال الطلب."); } finally { setIsSubmitting(false); }
+    } catch (err) { alert("خطأ في الطلب."); } finally { setIsSubmitting(false); }
   };
 
   if (isLoading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin text-amber-500" size={32} /></div>;
@@ -200,9 +206,9 @@ const CustomerMenu: React.FC<CustomerMenuProps> = ({ config: initialConfig }) =>
         })}
       </div>
 
-      {/* Floating Cart Button */}
+      {/* Cart Button */}
       {cart.length > 0 && (
-        <button onClick={() => setIsCartOpen(true)} className="fixed bottom-6 left-6 right-6 z-40 bg-black text-white p-4 rounded-2xl shadow-2xl flex justify-between items-center animate-in slide-in-from-bottom border border-gray-800">
+        <button onClick={() => setIsCartOpen(true)} className="fixed bottom-6 left-6 right-6 z-40 bg-black text-white p-4 rounded-2xl shadow-2xl flex justify-between items-center border border-gray-800">
           <div className="flex items-center gap-3">
             <div className="bg-amber-500 text-black w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold">{cart.length}</div>
             <span className="font-bold text-sm">{t.viewOrder}</span>
@@ -214,37 +220,10 @@ const CustomerMenu: React.FC<CustomerMenuProps> = ({ config: initialConfig }) =>
       {/* Success Modal */}
       {orderSuccess && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-white p-8 rounded-3xl shadow-2xl flex flex-col items-center text-center max-w-sm mx-4 animate-in zoom-in">
-            <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-4">
-              <CheckCircle size={48} />
-            </div>
+          <div className="bg-white p-8 rounded-3xl shadow-2xl flex flex-col items-center text-center max-w-sm mx-4">
+            <CheckCircle size={48} className="text-green-500 mb-4" />
             <h3 className="text-2xl font-bold mb-2">{t.orderSuccess}</h3>
             <p className="text-gray-500">{t.orderSuccessMsg}</p>
-          </div>
-        </div>
-      )}
-
-      {/* Dish Selection Modal */}
-      {selectedDish && (
-        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/60 backdrop-blur-sm p-0 md:p-4 animate-in fade-in" onClick={() => setSelectedDish(null)}>
-          <div className="bg-white w-full md:max-w-lg md:rounded-3xl rounded-t-3xl overflow-hidden max-h-[90vh] flex flex-col shadow-2xl animate-in slide-in-from-bottom" onClick={e => e.stopPropagation()}>
-            <div className="relative h-72 shrink-0">
-              <img src={selectedDish.image} alt={selectedDish.name} className="w-full h-full object-cover" />
-              <button onClick={() => setSelectedDish(null)} className="absolute top-4 right-4 bg-white/90 p-2 rounded-full shadow-lg"><X size={20} /></button>
-            </div>
-            <div className="p-6">
-              <div className="flex justify-between items-start mb-4">
-                <h2 className="text-2xl font-black">{selectedDish.name}</h2>
-                <span className="text-xl font-bold bg-amber-100 text-amber-700 px-3 py-1 rounded-lg">{selectedDish.price} {currentConfig.currency}</span>
-              </div>
-              <p className="text-gray-600 text-sm leading-relaxed mb-8">{selectedDish.description}</p>
-              <button 
-                onClick={() => addToCart(selectedDish)} 
-                className="w-full bg-black text-amber-500 font-bold py-4 rounded-2xl shadow-xl flex items-center justify-center gap-2 active:scale-95 transition-transform"
-              >
-                <Plus size={20} /> {t.addToOrder}
-              </button>
-            </div>
           </div>
         </div>
       )}
