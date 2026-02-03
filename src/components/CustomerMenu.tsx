@@ -18,12 +18,6 @@ const WhatsAppIcon = () => (
   </svg>
 );
 
-const TikTokIcon = () => (
-  <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
-    <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/>
-  </svg>
-);
-
 const CustomerMenu: React.FC<CustomerMenuProps> = ({ config: initialConfig }) => {
   const navigate = useNavigate();
   const { restaurantId } = useParams();
@@ -41,14 +35,12 @@ const CustomerMenu: React.FC<CustomerMenuProps> = ({ config: initialConfig }) =>
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(false);
-  const [isHoursModalOpen, setIsHoursModalOpen] = useState(false);
   const [customerName, setCustomerName] = useState('');
   const [tableNumber, setTableNumber] = useState('');
   const [verificationCode, setVerificationCode] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
   const [customerAddress, setCustomerAddress] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [currentOfferIndex, setCurrentOfferIndex] = useState(0);
 
   const isOrderingEnabled = currentConfig.isOrderingEnabled !== false;
   const isDeliveryEnabled = currentConfig.isDeliveryEnabled !== false; 
@@ -74,7 +66,7 @@ const CustomerMenu: React.FC<CustomerMenuProps> = ({ config: initialConfig }) =>
                 setMenuDishes(initialConfig.dishes);
             }
         } catch (error) {
-            console.error("Failed to load menu data", error);
+            console.error("Error loading menu:", error);
         } finally {
             setIsLoading(false);
         }
@@ -100,6 +92,7 @@ const CustomerMenu: React.FC<CustomerMenuProps> = ({ config: initialConfig }) =>
   };
 
   const filteredDishes = (catId: string) => menuDishes.filter(d => d.categoryId === catId && d.isAvailable);
+
   const addToCart = (dish: Dish, qty: number = 1) => {
     if (!isOrderingEnabled) return;
     setCart(prev => {
@@ -107,6 +100,7 @@ const CustomerMenu: React.FC<CustomerMenuProps> = ({ config: initialConfig }) =>
       if (ex) return prev.map(i => i.dish.id === dish.id ? { ...i, quantity: i.quantity + qty } : i);
       return [...prev, { dish, quantity: qty }];
     });
+    setSelectedDish(null);
   };
 
   const cartTotal = useMemo(() => cart.reduce((s, i) => s + (i.dish.price * i.quantity), 0), [cart]);
@@ -125,47 +119,51 @@ const CustomerMenu: React.FC<CustomerMenuProps> = ({ config: initialConfig }) =>
       });
       setCart([]); setIsCheckingOut(false); setIsCartOpen(false); setOrderSuccess(true);
       setTimeout(() => setOrderSuccess(false), 3000);
-    } catch (err) { alert("خطأ في الطلب."); } finally { setIsSubmitting(false); }
+    } catch (err) { alert("خطأ في إرسال الطلب."); } finally { setIsSubmitting(false); }
   };
 
-  if (isLoading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin" size={32} /></div>;
+  if (isLoading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin text-amber-500" size={32} /></div>;
 
   return (
-    <div className="min-h-screen bg-white pb-20" dir="rtl">
+    <div className="min-h-screen bg-white pb-20 font-sans" dir="rtl">
       {/* Header */}
-      <div className="p-4 flex justify-between items-center bg-white sticky top-0 z-30 border-b">
+      <div className="p-4 flex justify-between items-center bg-white sticky top-0 z-30 border-b shadow-sm">
         <h1 className="text-xl font-black">{currentConfig.name}</h1>
         <button onClick={() => navigate(isOwner ? '/select' : '/')} className="p-2 bg-gray-100 rounded-full"><ArrowRight size={18} /></button>
       </div>
 
       {/* Hero & Logo */}
       <div className="px-4 mt-4">
-        <div className="aspect-[2.5/1] rounded-2xl overflow-hidden bg-gray-100 shadow-sm">
+        <div className="aspect-[2.5/1] rounded-2xl overflow-hidden bg-gray-100 shadow-inner">
           <img src={currentConfig.coverImage} className="w-full h-full object-cover" alt="" />
         </div>
-        <div className="flex items-end gap-4 -mt-10 px-2">
-          <div className="w-24 h-24 rounded-2xl border-4 border-white bg-white shadow-md overflow-hidden">
-            <img src={currentConfig.logo} className="w-full h-full object-cover" alt="" />
+        <div className="flex items-end gap-4 -mt-12 px-2">
+          <div className="w-24 h-24 rounded-2xl border-4 border-white bg-white shadow-lg overflow-hidden">
+            <img src={currentConfig.logo} className="w-full h-full object-cover" alt="Logo" />
+          </div>
+          <div className="pb-1 bg-white/80 backdrop-blur-sm rounded-lg px-2 shadow-sm">
+            <h2 className="text-lg font-bold">{currentConfig.name}</h2>
+            <p className="text-[10px] text-gray-500 line-clamp-1">{currentConfig.description}</p>
           </div>
         </div>
       </div>
 
       {/* Categories Bar */}
-      <div className="sticky top-14 z-20 bg-white/90 backdrop-blur-md border-b p-2 overflow-x-auto flex gap-2 no-scrollbar">
-        {activeOffers.length > 0 && <button onClick={() => scrollToCategory('offers')} className={`px-4 py-1.5 rounded-full text-xs font-bold ${activeCategory === 'offers' ? 'bg-black text-white' : 'bg-gray-100'}`}>🔥 {t.offers}</button>}
+      <div className="sticky top-[65px] z-20 bg-white/95 backdrop-blur-md border-b p-2 overflow-x-auto flex gap-2 no-scrollbar">
+        {activeOffers.length > 0 && (
+          <button onClick={() => scrollToCategory('offers')} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${activeCategory === 'offers' ? 'bg-black text-white' : 'bg-amber-50 text-amber-600'}`}>🔥 {t.offers}</button>
+        )}
         {currentConfig.categories.filter(c => c.isAvailable).map(cat => (
-          <button key={cat.id} onClick={() => scrollToCategory(cat.id)} className={`px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap ${activeCategory === cat.id ? 'bg-black text-white' : 'bg-gray-100'}`}>{cat.name}</button>
+          <button key={cat.id} onClick={() => scrollToCategory(cat.id)} className={`px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all ${activeCategory === cat.id ? 'bg-black text-white' : 'bg-gray-100 text-gray-600'}`}>{cat.name}</button>
         ))}
       </div>
 
-      {/* Dishes List */}
-{/* محتوى المنيو */}
-      {/* محتوى المنيو وقائمة الأطباق */}
-      <div className="p-4 space-y-8">
-        {/* عرض "العروض الخاصة" إذا كانت موجودة ومفعلة */}
+      {/* Content Section */}
+      <div className="p-4 space-y-10">
+        {/* Render Offers */}
         {activeOffers.length > 0 && (
           <div id="section-offers" className="scroll-mt-28">
-            <h2 className="text-lg font-bold mb-4 flex items-center gap-2">🔥 {t.offers}</h2>
+            <h3 className="text-lg font-bold mb-4 flex items-center gap-2">✨ {t.offers}</h3>
             <div className="grid gap-4">
               {activeOffers.map(offer => (
                 <DishCard 
@@ -187,64 +185,13 @@ const CustomerMenu: React.FC<CustomerMenuProps> = ({ config: initialConfig }) =>
           </div>
         )}
 
-        {/* عرض بقية الأقسام المتاحة من قاعدة البيانات */}
+        {/* Render Categories & Dishes */}
         {currentConfig.categories.filter(c => c.isAvailable).map(cat => {
           const dishes = filteredDishes(cat.id);
           if (dishes.length === 0) return null;
           return (
             <div key={cat.id} id={`section-${cat.id}`} className="scroll-mt-28">
-              <h2 className="text-lg font-bold mb-4">{cat.name}</h2>
-              <div className="grid gap-4">
-                {dishes.map(dish => <DishCard key={dish.id} dish={dish} currency={currentConfig.currency} onClick={() => setSelectedDish(dish)} />)}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-        {/* --- هذا هو الجزء الذي كان ناقصاً لإظهار العروض --- */}
-        {activeOffers.length > 0 && (
-          <div id="section-offers" className="scroll-mt-28">
-            <h2 className="text-lg font-bold mb-4 flex items-center gap-2">🔥 {t.offers}</h2>
-            <div className="grid gap-4">
-              {activeOffers.map(offer => (
-                <DishCard 
-                  key={offer.id} 
-                  dish={{ 
-                    id: offer.id, categoryId: 'offer', name: offer.title, 
-                    description: offer.description || '', price: offer.price, 
-                    image: offer.image, isAvailable: true, prepTime: 15 
-                  }} 
-                  currency={currentConfig.currency} 
-                  onClick={() => setSelectedDish({
-                    id: offer.id, name: offer.title, description: offer.description || '',
-                    price: offer.price, image: offer.image, categoryId: 'offer',
-                    prepTime: 15, isAvailable: true
-                  })} 
-                />
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* بقية الأقسام العادية */}
-        {currentConfig.categories.filter(c => c.isAvailable).map(cat => {
-          const dishes = filteredDishes(cat.id);
-          if (dishes.length === 0) return null;
-          return (
-            <div key={cat.id} id={`section-${cat.id}`} className="scroll-mt-28">
-              <h2 className="text-lg font-bold mb-4">{cat.name}</h2>
-              <div className="grid gap-4">
-                {dishes.map(dish => <DishCard key={dish.id} dish={dish} currency={currentConfig.currency} onClick={() => setSelectedDish(dish)} />)}
-              </div>
-            </div>
-          );
-        })}
-      </div>        {currentConfig.categories.filter(c => c.isAvailable).map(cat => {
-          const dishes = filteredDishes(cat.id);
-          if (dishes.length === 0) return null;
-          return (
-            <div key={cat.id} id={`section-${cat.id}`} className="scroll-mt-28">
-              <h2 className="text-lg font-bold mb-4">{cat.name}</h2>
+              <h3 className="text-lg font-bold mb-4 border-r-4 border-black pr-2">{cat.name}</h3>
               <div className="grid gap-4">
                 {dishes.map(dish => <DishCard key={dish.id} dish={dish} currency={currentConfig.currency} onClick={() => setSelectedDish(dish)} />)}
               </div>
@@ -253,20 +200,51 @@ const CustomerMenu: React.FC<CustomerMenuProps> = ({ config: initialConfig }) =>
         })}
       </div>
 
-      {/* Modals & Cart Logic (Keeping it clean for build) */}
+      {/* Floating Cart Button */}
       {cart.length > 0 && (
-        <button onClick={() => setIsCartOpen(true)} className="fixed bottom-6 left-6 right-6 z-30 bg-black text-white p-4 rounded-2xl shadow-xl flex justify-between items-center">
-          <span className="font-bold">{t.viewOrder}</span>
-          <span className="font-bold">{cartTotal} {currentConfig.currency}</span>
+        <button onClick={() => setIsCartOpen(true)} className="fixed bottom-6 left-6 right-6 z-40 bg-black text-white p-4 rounded-2xl shadow-2xl flex justify-between items-center animate-in slide-in-from-bottom border border-gray-800">
+          <div className="flex items-center gap-3">
+            <div className="bg-amber-500 text-black w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold">{cart.length}</div>
+            <span className="font-bold text-sm">{t.viewOrder}</span>
+          </div>
+          <span className="font-bold text-lg text-amber-500">{cartTotal} {currentConfig.currency}</span>
         </button>
       )}
 
-      {/* Success Popup */}
+      {/* Success Modal */}
       {orderSuccess && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-white p-8 rounded-2xl shadow-2xl flex flex-col items-center text-center max-w-sm mx-4 animate-in zoom-in">
-            <CheckCircle size={48} className="text-green-500 mb-4" />
-            <h3 className="text-xl font-bold">{t.orderSuccess}</h3>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-white p-8 rounded-3xl shadow-2xl flex flex-col items-center text-center max-w-sm mx-4 animate-in zoom-in">
+            <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-4">
+              <CheckCircle size={48} />
+            </div>
+            <h3 className="text-2xl font-bold mb-2">{t.orderSuccess}</h3>
+            <p className="text-gray-500">{t.orderSuccessMsg}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Dish Selection Modal */}
+      {selectedDish && (
+        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/60 backdrop-blur-sm p-0 md:p-4 animate-in fade-in" onClick={() => setSelectedDish(null)}>
+          <div className="bg-white w-full md:max-w-lg md:rounded-3xl rounded-t-3xl overflow-hidden max-h-[90vh] flex flex-col shadow-2xl animate-in slide-in-from-bottom" onClick={e => e.stopPropagation()}>
+            <div className="relative h-72 shrink-0">
+              <img src={selectedDish.image} alt={selectedDish.name} className="w-full h-full object-cover" />
+              <button onClick={() => setSelectedDish(null)} className="absolute top-4 right-4 bg-white/90 p-2 rounded-full shadow-lg"><X size={20} /></button>
+            </div>
+            <div className="p-6">
+              <div className="flex justify-between items-start mb-4">
+                <h2 className="text-2xl font-black">{selectedDish.name}</h2>
+                <span className="text-xl font-bold bg-amber-100 text-amber-700 px-3 py-1 rounded-lg">{selectedDish.price} {currentConfig.currency}</span>
+              </div>
+              <p className="text-gray-600 text-sm leading-relaxed mb-8">{selectedDish.description}</p>
+              <button 
+                onClick={() => addToCart(selectedDish)} 
+                className="w-full bg-black text-amber-500 font-bold py-4 rounded-2xl shadow-xl flex items-center justify-center gap-2 active:scale-95 transition-transform"
+              >
+                <Plus size={20} /> {t.addToOrder}
+              </button>
+            </div>
           </div>
         </div>
       )}
