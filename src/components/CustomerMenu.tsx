@@ -159,8 +159,47 @@ const CustomerMenu: React.FC<CustomerMenuProps> = ({ config: initialConfig }) =>
       </div>
 
       {/* Dishes List */}
+{/* محتوى المنيو */}
       <div className="p-4 space-y-8">
+        {/* --- هذا هو الجزء الذي كان ناقصاً لإظهار العروض --- */}
+        {activeOffers.length > 0 && (
+          <div id="section-offers" className="scroll-mt-28">
+            <h2 className="text-lg font-bold mb-4 flex items-center gap-2">🔥 {t.offers}</h2>
+            <div className="grid gap-4">
+              {activeOffers.map(offer => (
+                <DishCard 
+                  key={offer.id} 
+                  dish={{ 
+                    id: offer.id, categoryId: 'offer', name: offer.title, 
+                    description: offer.description || '', price: offer.price, 
+                    image: offer.image, isAvailable: true, prepTime: 15 
+                  }} 
+                  currency={currentConfig.currency} 
+                  onClick={() => setSelectedDish({
+                    id: offer.id, name: offer.title, description: offer.description || '',
+                    price: offer.price, image: offer.image, categoryId: 'offer',
+                    prepTime: 15, isAvailable: true
+                  })} 
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* بقية الأقسام العادية */}
         {currentConfig.categories.filter(c => c.isAvailable).map(cat => {
+          const dishes = filteredDishes(cat.id);
+          if (dishes.length === 0) return null;
+          return (
+            <div key={cat.id} id={`section-${cat.id}`} className="scroll-mt-28">
+              <h2 className="text-lg font-bold mb-4">{cat.name}</h2>
+              <div className="grid gap-4">
+                {dishes.map(dish => <DishCard key={dish.id} dish={dish} currency={currentConfig.currency} onClick={() => setSelectedDish(dish)} />)}
+              </div>
+            </div>
+          );
+        })}
+      </div>        {currentConfig.categories.filter(c => c.isAvailable).map(cat => {
           const dishes = filteredDishes(cat.id);
           if (dishes.length === 0) return null;
           return (
