@@ -28,7 +28,7 @@ const TikTokIcon = () => (
 const CustomerMenu: React.FC<CustomerMenuProps> = ({ config: initialConfig }) => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { restaurantName } = useParams(); 
+const { restaurantId } = useParams();
   const targetUserId = searchParams.get('uid');
   
   const [currentConfig, setCurrentConfig] = useState<RestaurantConfig>(initialConfig);
@@ -78,31 +78,34 @@ const CustomerMenu: React.FC<CustomerMenuProps> = ({ config: initialConfig }) =>
     document.documentElement.lang = language;
   }, [language]);
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setIsOwner(!!session);
-      if (!targetUserId && !restaurantName && session?.user) {
-          setMenuOwnerId(session.user.id);
-      }
-    });
-  }, [targetUserId, restaurantName]);
-
-  useEffect(() => {
+useEffect(() => {
     const loadData = async () => {
         setIsLoading(true);
         try {
-            if (restaurantName) {
-                const fetchedConfig = await getRestaurantConfig(restaurantName, true);
+            if (restaurantId) {
+                // 1. جلب إعدادات المنيو (الألوان، الأطباق، العروض)
+                const fetchedConfig = await getRestaurantConfig(restaurantId, true);
                 setCurrentConfig(fetchedConfig);
                 setMenuDishes(fetchedConfig.dishes);
-                const { data: profile } = await supabase.from('profiles').select('id').eq('restaurant_name', restaurantName).maybeSingle();
-                if (profile) setMenuOwnerId(profile.id);
+                
+                // 2. جلب ID صاحب المطعم لتمكين استقبال الطلبات (حل مشكلة وضع المعاينة)
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('id')
+                    .eq('restaurant_name', restaurantId)
+                    .maybeSingle();
+                
+                if (profile) {
+                    setMenuOwnerId(profile.id);
+                }
             } else if (targetUserId) {
+                // حالة النسخ الاحتياطية باستخدام UID
                 setMenuOwnerId(targetUserId);
                 const fetchedConfig = await getRestaurantConfig(targetUserId);
                 setCurrentConfig(fetchedConfig);
                 setMenuDishes(fetchedConfig.dishes);
             } else {
+                // الحالة الافتراضية
                 setCurrentConfig(initialConfig);
                 setMenuDishes(initialConfig.dishes);
                 const { data: { user } } = await supabase.auth.getUser();
@@ -111,6 +114,11 @@ const CustomerMenu: React.FC<CustomerMenuProps> = ({ config: initialConfig }) =>
         } catch (error) {
             console.error("Failed to load menu data", error);
         } finally {
+            setIsLoading(false);
+        }
+    };
+    loadData();
+  }, [restaurantId, targetUserId, initialConfig]);
             setIsLoading(false);
         }
     };
