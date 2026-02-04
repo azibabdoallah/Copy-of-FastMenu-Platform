@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-// 1. تغيير HashRouter إلى BrowserRouter وتسميته Router
+// 1. لاحظ هنا: نستخدم BrowserRouter بدلاً من HashRouter
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import CustomerMenu from './components/CustomerMenu';
 import AdminDashboard from './components/AdminDashboard';
@@ -95,6 +95,7 @@ const App: React.FC = () => {
   }
 
   return (
+    // 2. استخدام Router (الذي هو BrowserRouter) لإزالة الهاشتاغ
     <Router>
       <Routes>
         <Route path="/" element={<PublicRoute><LandingPage /></PublicRoute>} />
@@ -102,7 +103,7 @@ const App: React.FC = () => {
         <Route path="/select" element={<ProtectedRoute><SelectionPage /></ProtectedRoute>} />
         <Route path="/admin" element={<ProtectedRoute><AdminDashboard config={config} onUpdate={handleUpdateConfig} onLogout={handleLogout}/></ProtectedRoute>} />
         
-        {/* التعديل الحاسم هنا: جعلنا الرابط يقبل الاسم مباشرة */}
+        {/* 3. هذا السطر هو الأهم: جعل الرابط يقبل الاسم مباشرة بدون كلمة menu */}
         <Route path="/:restaurantName" element={<CustomerMenu config={config} />} />
         
         <Route path="*" element={<Navigate to="/" />} />
