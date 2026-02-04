@@ -1,6 +1,6 @@
-
 import React, { useState, useEffect } from 'react';
-import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
+// 1. تغيير HashRouter إلى BrowserRouter وتسميته Router
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import CustomerMenu from './components/CustomerMenu';
 import AdminDashboard from './components/AdminDashboard';
 import LandingPage from './components/LandingPage';
@@ -18,7 +18,6 @@ const App: React.FC = () => {
   const [config, setConfig] = useState<RestaurantConfig>(DEFAULT_CONFIG);
   const [loading, setLoading] = useState(true);
 
-  // وظيفة لتطبيق اللون المخصص على صفحة العميل فقط عبر متغير CSS
   const applyCustomerBranding = (color: string) => {
     if (color) {
       document.documentElement.style.setProperty('--customer-brand', color);
@@ -42,7 +41,7 @@ const App: React.FC = () => {
     const initAuth = async () => {
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
-        if (error && (error.message.includes('refresh_token_not_found') || error.message.includes('Invalid Refresh Token'))) {
+        if (error) {
           await supabase.auth.signOut();
           clearLocalData();
           setConfig(DEFAULT_CONFIG);
@@ -55,7 +54,7 @@ const App: React.FC = () => {
 
     initAuth();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
         if (event === 'SIGNED_OUT') {
             clearLocalData();
             setConfig(DEFAULT_CONFIG);
@@ -81,7 +80,7 @@ const App: React.FC = () => {
       setConfig(DEFAULT_CONFIG);
       applyCustomerBranding(DEFAULT_CONFIG.primaryColor);
       await supabase.auth.signOut();
-      window.location.hash = '/auth'; 
+      window.location.href = '/auth'; 
   };
 
   if (loading) {
@@ -96,19 +95,19 @@ const App: React.FC = () => {
   }
 
   return (
-    <HashRouter>
+    <Router>
       <Routes>
         <Route path="/" element={<PublicRoute><LandingPage /></PublicRoute>} />
         <Route path="/auth" element={<PublicRoute><AuthPage /></PublicRoute>} />
         <Route path="/select" element={<ProtectedRoute><SelectionPage /></ProtectedRoute>} />
         <Route path="/admin" element={<ProtectedRoute><AdminDashboard config={config} onUpdate={handleUpdateConfig} onLogout={handleLogout}/></ProtectedRoute>} />
         
-        <Route path="/menu" element={<CustomerMenu config={config} />} />
-        <Route path="/menu/:restaurantName" element={<CustomerMenu config={config} />} />
+        {/* التعديل الحاسم هنا: جعلنا الرابط يقبل الاسم مباشرة */}
+        <Route path="/:restaurantName" element={<CustomerMenu config={config} />} />
         
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
-    </HashRouter>
+    </Router>
   );
 };
 
