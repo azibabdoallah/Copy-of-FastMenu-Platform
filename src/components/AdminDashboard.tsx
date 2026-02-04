@@ -1,5 +1,5 @@
 
-import React, {A useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { RestaurantConfig, Category, Dish, Order, Offer, Language, WorkingHours } from '../types';
 import { DEFAULT_CONFIG, TRANSLATIONS } from '../constants';
@@ -950,7 +950,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ config: initialConfig, 
                     </div>
                 </div>
 
-                <div><label className="block text-sm font-medium text-gray-700 mb-1">{t.restaurantName}</label><input type="text" value={settingsForm.name} onChange={e => handleSettingsChange('name', e.target.value)} className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary/20 outline-none" /></div>
+                <div><label className="block text-sm font-medium text-gray-700 mb-1">{t.restaurantName}</label><input type="text" value={settingsForm.name} onChange={e => handleSettingsChange('name', e.target.value)} className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary/20 outline-none" /></div>
                  <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">{t.restaurantLogo}</label>
                   <div className="flex gap-4 items-center">
@@ -985,7 +985,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ config: initialConfig, 
                   <p className="text-[10px] text-gray-400 mt-2 text-right">هذا اللون يطبق على صفحة منيو الزبون فقط (الاسم، الأسعار، الأزرار).</p>
                 </div>
 
-                <div className="md:col-span-2 mt-4"><label className="block text-sm font-medium text-gray-700 mb-1">{t.restaurantDesc}</label><textarea value={settingsForm.description} onChange={e => handleSettingsChange('description', e.target.value)} className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary/20 outline-none h-24" /></div>
+                <div className="md:col-span-2 mt-4"><label className="block text-sm font-medium text-gray-700 mb-1">{t.restaurantDesc}</label><textarea value={settingsForm.description} onChange={e => handleSettingsChange('description', e.target.value)} className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary/20 outline-none h-24" /></div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">{t.coverImage}</label>
                    <div className="flex gap-4 items-center">
@@ -996,7 +996,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ config: initialConfig, 
                         </div>
                     </div>
                 </div>
-                <div><label className="block text-sm font-medium text-gray-700 mb-1">{t.currency}</label><input type="text" value={settingsForm.currency} onChange={e => handleSettingsChange('currency', e.target.value)} className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary/20 outline-none" /></div>
+                <div><label className="block text-sm font-medium text-gray-700 mb-1">{t.currency}</label><input type="text" value={settingsForm.currency} onChange={e => handleSettingsChange('currency', e.target.value)} className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary/20 outline-none" /></div>
               </div>
 
               {/* Category Display Selection */}
@@ -1059,14 +1059,14 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ config: initialConfig, 
                                     type="time" 
                                     value={settingsForm.workingHours[day].start} 
                                     onChange={e => handleWorkingHoursChange(day, 'start', e.target.value)}
-                                    className="flex-1 border border-gray-200 rounded-lg px-3 py-1.5 text-sm bg-white focus:ring-2 focus:ring-primary/20 outline-none" 
+                                    className="flex-1 border rounded-lg px-3 py-1.5 text-sm bg-white focus:ring-2 focus:ring-primary/20 outline-none" 
                                   />
                                   <span className="text-gray-400">-</span>
                                   <input 
                                     type="time" 
                                     value={settingsForm.workingHours[day].end} 
                                     onChange={e => handleWorkingHoursChange(day, 'end', e.target.value)}
-                                    className="flex-1 border border-gray-200 rounded-lg px-3 py-1.5 text-sm bg-white focus:ring-2 focus:ring-primary/20 outline-none" 
+                                    className="flex-1 border rounded-lg px-3 py-1.5 text-sm bg-white focus:ring-2 focus:ring-primary/20 outline-none" 
                                   />
                               </div>
                           ) : (
@@ -1080,11 +1080,11 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ config: initialConfig, 
 
               <h3 className="font-bold text-lg mb-4 text-gray-800">{t.socialLinks}</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                 <div><label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1"><Smartphone size={16} /> WhatsApp</label><input type="text" value={settingsForm.socials.whatsapp || ''} onChange={e => handleSocialChange('whatsapp', e.target.value)} className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary/20 outline-none" dir="ltr" /></div>
-                <div><label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1"><Instagram size={16} /> Instagram (User)</label><input type="text" value={settingsForm.socials.instagram || ''} onChange={e => handleSocialChange('instagram', e.target.value)} className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary/20 outline-none" dir="ltr" /></div>
-                <div><label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1"><Facebook size={16} /> Facebook (User/ID)</label><input type="text" value={settingsForm.socials.facebook || ''} onChange={e => handleSocialChange('facebook', e.target.value)} className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary/20 outline-none" dir="ltr" placeholder="ex: restaurant.page" /></div>
-                <div><label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1">TikTok (User)</label><input type="text" value={settingsForm.socials.tiktok || ''} onChange={e => handleSocialChange('tiktok', e.target.value)} className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary/20 outline-none" dir="ltr" placeholder="@user" /></div>
-                <div className="md:col-span-2"><label className="block text-sm font-medium text-gray-700 mb-1">Google Maps (URL)</label><input type="text" value={settingsForm.socials.googleMaps || ''} onChange={e => handleSocialChange('googleMaps', e.target.value)} className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary/20 outline-none" dir="ltr" /></div>
+                 <div><label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1"><Smartphone size={16} /> WhatsApp</label><input type="text" value={settingsForm.socials.whatsapp || ''} onChange={e => handleSocialChange('whatsapp', e.target.value)} className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary/20 outline-none" dir="ltr" /></div>
+                <div><label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1"><Instagram size={16} /> Instagram (User)</label><input type="text" value={settingsForm.socials.instagram || ''} onChange={e => handleSocialChange('instagram', e.target.value)} className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary/20 outline-none" dir="ltr" /></div>
+                <div><label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1"><Facebook size={16} /> Facebook (User/ID)</label><input type="text" value={settingsForm.socials.facebook || ''} onChange={e => handleSocialChange('facebook', e.target.value)} className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary/20 outline-none" dir="ltr" placeholder="ex: restaurant.page" /></div>
+                <div><label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1">TikTok (User)</label><input type="text" value={settingsForm.socials.tiktok || ''} onChange={e => handleSocialChange('tiktok', e.target.value)} className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary/20 outline-none" dir="ltr" placeholder="@user" /></div>
+                <div className="md:col-span-2"><label className="block text-sm font-medium text-gray-700 mb-1">Google Maps (URL)</label><input type="text" value={settingsForm.socials.googleMaps || ''} onChange={e => handleSocialChange('googleMaps', e.target.value)} className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary/20 outline-none" dir="ltr" /></div>
               </div>
               <button onClick={saveSettings} disabled={isSaving} className="bg-primary text-black px-8 py-3 rounded-xl font-bold hover:bg-yellow-400 transition-colors shadow-lg shadow-primary/30 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
                 {isSaving ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
